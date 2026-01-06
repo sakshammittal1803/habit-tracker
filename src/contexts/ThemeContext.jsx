@@ -21,6 +21,19 @@ export function ThemeProvider({ children }) {
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
   }, [isDark])
 
+  // Listen for native menu theme toggle
+  useEffect(() => {
+    if (window.electronAPI) {
+      window.electronAPI.onToggleTheme(() => {
+        setIsDark(prev => !prev)
+      })
+
+      return () => {
+        window.electronAPI.removeAllListeners('toggle-theme')
+      }
+    }
+  }, [])
+
   const toggleTheme = () => {
     setIsDark(!isDark)
   }

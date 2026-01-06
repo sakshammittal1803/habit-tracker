@@ -9,24 +9,30 @@ function Navbar() {
     <nav className="navbar">
       <div className="navbar__container">
         <Link to="/" className="navbar__brand">
-          Habit Tracker
+          HabitTracker
         </Link>
         <div className="navbar__content">
           <div className="navbar__links">
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className={`navbar__link ${location.pathname === '/' ? 'navbar__link--active' : ''}`}
             >
-              Monthly View
+              Overview
             </Link>
-            <Link 
-              to="/weekly-stats" 
+            <Link
+              to="/weekly-stats"
               className={`navbar__link ${location.pathname === '/weekly-stats' ? 'navbar__link--active' : ''}`}
             >
-              Weekly Stats
+              Stats
+            </Link>
+            <Link
+              to="/pomodoro"
+              className={`navbar__link ${location.pathname === '/pomodoro' ? 'navbar__link--active' : ''}`}
+            >
+              Pomodoro
             </Link>
           </div>
-          <button 
+          <button
             className="theme-toggle"
             onClick={toggleTheme}
             aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}

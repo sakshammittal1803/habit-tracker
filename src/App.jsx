@@ -1,29 +1,45 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import { ThemeProvider } from './contexts/ThemeContext'
 import Navbar from './components/Navbar'
 import LoadingPage from './components/LoadingPage'
 import MonthlyView from './pages/MonthlyView'
 import WeeklyStats from './pages/WeeklyStats'
+import PomodoroPage from './pages/PomodoroPage'
 import { useLocalStorage } from './hooks/useLocalStorage'
 
 function App() {
   const [habits, setHabits] = useLocalStorage('habitTracker', [])
   const [isLoading, setIsLoading] = useState(true)
 
+  console.log('App component rendering, isLoading:', isLoading)
+
   useEffect(() => {
     // Simulate loading time
     const timer = setTimeout(() => {
       setIsLoading(false)
-    }, 5000) // 5 seconds loading time
+    }, 1000) // 1 second loading time for testing
 
     return () => clearTimeout(timer)
   }, [])
 
+  const navigate = useNavigate()
+
+
+
+  // Request notification permission on app start
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+  }, [])
+
   const addHabit = (habitName) => {
+    const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()
     const newHabit = {
       id: Date.now(),
       name: habitName,
+      goal: daysInMonth, // Default (every day)
       completions: {}
     }
     setHabits([...habits, newHabit])
@@ -62,21 +78,26 @@ function App() {
         <Navbar />
         <div className="container">
           <Routes>
-            <Route 
-              path="/" 
+            <Route
+              path="/"
               element={
-                <MonthlyView 
+                <MonthlyView
                   habits={habits}
                   onAddHabit={addHabit}
                   onDeleteHabit={deleteHabit}
                   onToggleCompletion={toggleCompletion}
                 />
-              } 
+              }
             />
-            <Route 
-              path="/weekly-stats" 
-              element={<WeeklyStats habits={habits} />} 
+            <Route
+              path="/weekly-stats"
+              element={<WeeklyStats habits={habits} />}
             />
+            <Route
+              path="/pomodoro"
+              element={<PomodoroPage />}
+            />
+            <Route path="*" element={<div style={{ color: 'red', padding: 50, fontSize: 24 }}>404 - Not Found</div>} />
           </Routes>
         </div>
       </div>

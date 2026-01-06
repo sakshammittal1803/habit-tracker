@@ -2,9 +2,11 @@ import { useState } from 'react'
 import HabitForm from '../components/HabitForm'
 import MonthNavigation from '../components/MonthNavigation'
 import HabitGrid from '../components/HabitGrid'
+import DashboardGraph from '../components/DashboardGraph'
 import { getMonthStart } from '../utils/dateUtils'
 
 function MonthlyView({ habits, onAddHabit, onDeleteHabit, onToggleCompletion }) {
+  console.log('MonthlyView rendering')
   const [currentMonthStart, setCurrentMonthStart] = useState(getMonthStart(new Date()))
 
   const navigateMonth = (direction) => {
@@ -14,25 +16,29 @@ function MonthlyView({ habits, onAddHabit, onDeleteHabit, onToggleCompletion }) 
   }
 
   return (
-    <div className="page">
+    <div className="page" style={{ padding: '1rem', height: '100%', overflow: 'hidden' }}>
       <header>
-        <h1>My Habit Tracker</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+          <h1 style={{ margin: 0, fontSize: '1.5rem' }}>My Habits</h1>
+          <MonthNavigation
+            currentMonthStart={currentMonthStart}
+            onNavigate={navigateMonth}
+          />
+        </div>
         <HabitForm onAddHabit={onAddHabit} />
       </header>
 
-      <main>
-        <MonthNavigation 
-          currentMonthStart={currentMonthStart}
-          onNavigate={navigateMonth}
-        />
-        
-        <HabitGrid 
-          habits={habits}
-          currentMonthStart={currentMonthStart}
-          onDeleteHabit={onDeleteHabit}
-          onToggleCompletion={onToggleCompletion}
-        />
-      </main>
+      <HabitGrid
+        habits={habits}
+        currentMonthStart={currentMonthStart}
+        onDeleteHabit={onDeleteHabit}
+        onToggleCompletion={onToggleCompletion}
+      />
+
+      <DashboardGraph
+        habits={habits}
+        currentMonthStart={currentMonthStart}
+      />
     </div>
   )
 }
