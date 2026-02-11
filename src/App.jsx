@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from 'react-router-dom'
 import { ThemeProvider } from './contexts/ThemeContext'
 import Navbar from './components/Navbar'
 import LoadingPage from './components/LoadingPage'
+import LoginPage from './pages/LoginPage'
 import MonthlyView from './pages/MonthlyView'
 import WeeklyStats from './pages/WeeklyStats'
 import PomodoroPage from './pages/PomodoroPage'
@@ -11,6 +12,7 @@ import { useLocalStorage } from './hooks/useLocalStorage'
 function App() {
   const [habits, setHabits] = useLocalStorage('habitTracker', [])
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   console.log('App component rendering, isLoading:', isLoading)
 
@@ -68,6 +70,14 @@ function App() {
     return (
       <ThemeProvider>
         <LoadingPage />
+      </ThemeProvider>
+    )
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <ThemeProvider>
+        <LoginPage onLogin={() => setIsLoggedIn(true)} />
       </ThemeProvider>
     )
   }
