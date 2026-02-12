@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
 import { getWeekStart, getWeekDates, formatDate } from '../utils/dateUtils'
 
-function WeeklyStats({ habits }) {
+function WeeklyStats({ habits, hasPaid }) {
   const [currentWeekStart, setCurrentWeekStart] = useState(getWeekStart(new Date()))
 
   // Theme colors matching CSS variables
@@ -18,6 +18,29 @@ function WeeklyStats({ habits }) {
     const newDate = new Date(currentWeekStart)
     newDate.setDate(newDate.getDate() + (direction * 7))
     setCurrentWeekStart(newDate)
+  }
+
+  // Lock Screen for Free Users
+  if (!hasPaid) {
+    return (
+      <div className="page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center', gap: '1.5rem' }}>
+        <div style={{ fontSize: '4rem', color: '#e5e7eb' }}>🔒</div>
+        <h1>Weekly Statistics Locked</h1>
+        <p style={{ color: '#666', maxWidth: '400px' }}>
+          Unlock detailed insights into your habits and verify your progress with Premium.
+        </p>
+        <a href="/payment" style={{
+          display: 'inline-block',
+          backgroundColor: '#3b82f6',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          textDecoration: 'none',
+          fontWeight: 'bold',
+          fontSize: '1.1rem'
+        }}>Get Premium</a>
+      </div>
+    )
   }
 
   const getWeeklyData = () => {

@@ -9,8 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@googleapis/oauth2": "^5.0.1",
-    "firebase": "^12.7.0",
+    "@react-oauth/google": "^0.13.4",
+    "firebase": "^12.9.0",
+    "jwt-decode": "^4.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.11.0",

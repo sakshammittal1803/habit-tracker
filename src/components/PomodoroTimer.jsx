@@ -20,21 +20,30 @@ function PomodoroTimer() {
   }
 
   useEffect(() => {
+    let interval = null
     if (isActive && timeLeft > 0) {
-      intervalRef.current = setInterval(() => {
-        setTimeLeft(time => time - 1)
+      interval = setInterval(() => {
+        setTimeLeft((prevTime) => prevTime - 1)
       }, 1000)
     } else if (timeLeft === 0) {
-      handleTimerComplete()
-    } else {
-      clearInterval(intervalRef.current)
-    }
+      setIsActive(false)
+      // Play sound
+      const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg')
+      audio.play().catch(e => console.error("Error playing sound:", e))
 
-    return () => clearInterval(intervalRef.current)
-  }, [isActive, timeLeft])
+      if (mode === 'work') {
+        alert('Work session complete! Take a break.')
+      } else {
+        alert('Break over! Time to focus.')
+      }
+      // Call handleTimerComplete to switch modes and show browser notification
+      handleTimerComplete()
+    }
+    return () => clearInterval(interval)
+  }, [isActive, timeLeft, mode])
 
   const handleTimerComplete = () => {
-    setIsActive(false)
+    // setIsActive(false) // This is now handled in useEffect
 
     if (mode === 'work') {
       const newSessions = sessions + 1
