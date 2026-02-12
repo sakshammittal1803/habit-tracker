@@ -60,8 +60,8 @@ function MonthlyView({ habits, onAddHabit, onDeleteHabit, onToggleCompletion, ha
       )}
 
       <header style={{ opacity: hasPaid ? 1 : 0.5, pointerEvents: hasPaid ? 'auto' : 'none' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <h1 style={{ margin: 0, fontSize: '1.5rem' }}>My Habits</h1>
+        <div className="header-controls">
+          <h1 style={{ margin: 0 }}>My Habits</h1>
           <MonthNavigation
             currentMonthStart={currentMonthStart}
             onNavigate={navigateMonth}

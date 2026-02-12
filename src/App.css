@@ -471,3 +471,192 @@ header {
     transform: scale(1);
   }
 }
+
+/* =========================================
+   MOBILE OPTIMIZATIONS
+   ========================================= */
+
+/* Bottom Navigation (Hidden by default) */
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: var(--card-background);
+  border-top: 1px solid var(--border-color);
+  z-index: 1000;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.bottom-nav__container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 100%;
+}
+
+.bottom-nav__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+}
+
+.bottom-nav__link--active {
+  color: var(--primary-color);
+}
+
+.bottom-nav__icon {
+  font-size: 1.2rem;
+}
+
+/* Page content needs padding at bottom so nav doesn't cover it */
+@media (max-width: 768px) {
+  .page {
+    padding-bottom: 70px !important;
+    /* Space for bottom nav */
+  }
+
+  .navbar {
+    display: none;
+    /* Hide top navbar */
+  }
+
+  .bottom-nav {
+    display: block;
+    /* Show bottom nav */
+  }
+
+  /* Sticky First Column for Habit Grid */
+  .habits-container {
+    overflow-x: auto;
+    /* Allow horizontal scroll */
+    position: relative;
+  }
+
+  .grid-header,
+  .habit-row {
+    min-width: 1000px;
+    /* Increased to give more space (~32px per day) */
+  }
+
+  .day-cell,
+  .header-day-cell {
+    min-width: 32px;
+    /* Ensure minimum touch target size */
+  }
+
+  /* Make the first column sticky */
+  .col-name {
+    position: sticky;
+    left: 0;
+    background: var(--card-background);
+    z-index: 10;
+    width: 140px;
+    min-width: 140px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+    /* Shadow to show depth */
+    border-right: 1px solid var(--border-color);
+  }
+
+  /* Typography Adjustments */
+  h1 {
+    font-size: 1.25rem !important;
+  }
+
+  .add-habit-section {
+    width: 100%;
+  }
+
+  .habit-input {
+    flex: 1;
+  }
+
+  /* Header Optimization for Mobile */
+  header {
+    flex-direction: column;
+    align-items: stretch;
+    /* Full width */
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .header-controls {
+    justify-content: space-between;
+    /* Spread Title and Nav */
+    width: 100%;
+    gap: 0.5rem !important;
+  }
+
+  .header-controls h1 {
+    font-size: 1.1rem !important;
+  }
+
+  .date-navigation {
+    font-size: 0.9rem !important;
+  }
+
+  /* Make Add Habit Layout Vertical on extremely small screens if needed, 
+     but for now just ensure it fits */
+  .add-habit-section {
+    width: 100%;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .habit-input {
+    flex: 1;
+    /* Take remaining space */
+    min-width: 0;
+    /* Allow shrinking */
+  }
+
+  .add-habit-btn {
+    white-space: nowrap;
+    /* Keep button text together */
+  }
+}
+
+/* Header Controls & Date Navigation (Default/Desktop) */
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.date-navigation {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.nav-button {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  /* Prevent buttons from squishing */
+}
+
+/* Ensure date text stays on one line */
+.current-month {
+  white-space: nowrap;
+}
