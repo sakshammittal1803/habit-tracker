@@ -20,7 +20,7 @@ function HabitForm({ onAddHabit }) {
         value={habitName}
         onChange={(e) => setHabitName(e.target.value)}
       />
-      <button type="submit" className="add-habit-btn">
+      <button type="submit" className="btn btn-primary">
         Add Habit
       </button>
     </form>

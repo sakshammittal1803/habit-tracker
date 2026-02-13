@@ -18,6 +18,10 @@
   flex-direction: column;
   gap: 1.5rem;
   border: 1px solid var(--border-color);
+  max-height: 90vh;
+  /* Limit height to 90% of viewport */
+  overflow-y: auto;
+  /* Add scrollbar if content exceeds height */
 }
 
 .login-header {
@@ -114,4 +118,31 @@
   display: flex;
   justify-content: center;
   width: 100%;
+}
+
+.auth-tabs {
+  display: flex;
+  background: var(--background-color);
+  padding: 0.25rem;
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: calc(var(--radius) - 2px);
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background: var(--card-background);
+  color: var(--primary-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }

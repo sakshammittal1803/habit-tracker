@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './PaymentPage.css';
 
-const PaymentPage = ({ onPaymentSuccess, user }) => {
+const PaymentPage = ({ onPaymentSuccess, user, trialDaysLeft, hasPaid }) => {
     const navigate = useNavigate();
 
     const loadRazorpayScript = () => {
@@ -51,34 +51,89 @@ const PaymentPage = ({ onPaymentSuccess, user }) => {
         paymentObject.open();
     };
 
+    const isTrialActive = trialDaysLeft > 0;
+
+    if (hasPaid) {
+        return (
+            <div className="payment-page">
+                <div className="payment-card" style={{ maxWidth: '600px', margin: '2rem auto', textAlign: 'center', padding: '3rem' }}>
+                    <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
+                    <h1 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>Thanks for purchasing!</h1>
+                    <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+                        You have lifetime access to all Premium features. Enjoy tracking your habits without limits!
+                    </p>
+                    <button className="btn btn-primary" onClick={() => navigate('/')}>
+                        Go to Dashboard
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="payment-page">
-            <div className="payment-card">
-                <div className="payment-header">
-                    <h1>Upgrade to Pro</h1>
-                    <p>Unlock the full potential of your habits</p>
+            <div className="payment-header">
+                <h1>Choose Your Plan</h1>
+                <p>Start with a free trial or upgrade for lifetime access.</p>
+            </div>
+
+            <div className="pricing-container">
+                {/* Free Trial Card */}
+                <div className="payment-card">
+                    <h2 className="card-title">Free Trial</h2>
+                    <p className="card-subtitle">Experience all features</p>
+
+                    <div className="price-tag">
+                        <span className="currency">₹</span>
+                        <span className="amount">0</span>
+                        <span className="period">/ 30 days</span>
+                    </div>
+
+                    <div className={`trial-status ${!isTrialActive ? 'trial-expired' : ''}`}>
+                        {isTrialActive ? `${trialDaysLeft} Days Remaining` : 'Trial Expired'}
+                    </div>
+
+                    <ul className="features-list">
+                        <li><span className="check-icon">✓</span> Unlimited Habits</li>
+                        <li><span className="check-icon">✓</span> Weekly Stats</li>
+                        <li><span className="check-icon">✓</span> Data Tracking</li>
+                        <li className="feature-unavailable"><span className="cross-icon">✕</span> Lifetime Access</li>
+                    </ul>
+
+                    <button className="current-plan-btn" disabled>
+                        {isTrialActive ? 'Active Plan' : 'Expired'}
+                    </button>
                 </div>
 
-                <div className="price-tag">
-                    <span className="currency">₹</span>
-                    <span className="amount">100</span>
-                    <span className="period">/ lifetime</span>
-                </div>
+                {/* Pro Card */}
+                <div className="payment-card" style={{ border: '2px solid #3182ce', transform: 'scale(1.02)' }}>
+                    <div style={{ background: '#3182ce', color: 'white', padding: '0.2rem 1rem', borderRadius: '20px', fontSize: '0.8rem', position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', fontWeight: '600' }}>
+                        MOST POPULAR
+                    </div>
+                    <h2 className="card-title">Lifetime Pro</h2>
+                    <p className="card-subtitle">Unlock everything forever</p>
 
-                <ul className="features-list">
-                    <li><span className="check-icon">✓</span> Unlimited Habits</li>
-                    <li><span className="check-icon">✓</span> Detailed Analytics & Graphs</li>
-                    <li><span className="check-icon">✓</span> Weekly Progress Reports</li>
-                    <li><span className="check-icon">✓</span> Priority Support</li>
-                </ul>
+                    <div className="price-tag">
+                        <span className="currency">₹</span>
+                        <span className="amount">100</span>
+                        <span className="period">/ one-time</span>
+                    </div>
 
-                <button className="checkout-btn" onClick={handlePayment}>
-                    Get Pro Access
-                </button>
+                    <ul className="features-list">
+                        <li><span className="check-icon">✓</span> Unlimited Habits</li>
+                        <li><span className="check-icon">✓</span> Detailed Analytics</li>
+                        <li><span className="check-icon">✓</span> Priority Support</li>
+                        <li><span className="check-icon">✓</span> Lifetime Access</li>
+                    </ul>
 
-                <div className="secure-badge">
-                    <span className="lock-icon">🔒</span>
-                    Secured by Razorpay
+                    <button className="checkout-btn" onClick={handlePayment}>
+                        Get Pro Access
+                    </button>
+
+                    <div className="secure-badge">
+                        <span className="lock-icon">🔒</span>
+                        Secured by Razorpay
+                    </div>
                 </div>
             </div>
         </div>

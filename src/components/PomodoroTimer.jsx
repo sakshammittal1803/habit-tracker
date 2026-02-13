@@ -1,22 +1,69 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTheme } from '../contexts/ThemeContext'
 
 function PomodoroTimer() {
-  const [timeLeft, setTimeLeft] = useState(25 * 60) // 25 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(25 * 60)
   const [isActive, setIsActive] = useState(false)
   const [mode, setMode] = useState('work') // 'work', 'shortBreak', 'longBreak'
-  const [sessions, setSessions] = useState(0)
+  const [totalDuration, setTotalDuration] = useState(25 * 60) // Track initial duration for progress
   const intervalRef = useRef(null)
+  const { isDark } = useTheme()
 
   const modes = {
     work: { duration: 25 * 60, label: 'Focus Time', color: 'var(--primary-color)' },
     shortBreak: { duration: 5 * 60, label: 'Short Break', color: 'var(--success-color)' },
-    longBreak: { duration: 15 * 60, label: 'Long Break', color: '#ff6b7a' } // Keep generic red or use danger?
+    longBreak: { duration: 15 * 60, label: 'Long Break', color: '#ff6b7a' }
   }
 
-  // Use danger color for long break if in theme
-  const getModeColor = (m) => {
-    if (m === 'longBreak') return 'var(--danger-color)'
-    return modes[m].color
+  // Sound Effect (Web Audio API)
+  const playNotificationSound = () => {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext
+      if (!AudioContext) return
+
+      const ctx = new AudioContext()
+      const osc = ctx.createOscillator()
+      const gainNode = ctx.createGain()
+
+      osc.connect(gainNode)
+      gainNode.connect(ctx.destination)
+
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(500, ctx.currentTime) // Start low
+      osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.1) // Go high (Ding!)
+
+      gainNode.gain.setValueAtTime(0.5, ctx.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1) // Fade out
+
+      osc.start(ctx.currentTime)
+      osc.stop(ctx.currentTime + 1)
+    } catch (e) {
+      console.error("Audio play failed", e)
+    }
+  }
+
+  // Growth Logic
+  const getGrowthStage = () => {
+    if (mode !== 'work') return '☕' // Coffee for break
+
+    const progress = 1 - (timeLeft / totalDuration)
+
+    if (timeLeft === 0) return '🐓' // Fully Grown!
+    if (progress < 0.25) return '🥚' // Egg
+    if (progress < 0.50) return '🐣' // Hatching
+    if (progress < 0.75) return '🐥' // Chick
+    return '🐓' // Hen (almost there)
+  }
+
+  const getEncouragement = () => {
+    if (mode !== 'work') return "Relax and recharge..."
+
+    const stage = getGrowthStage()
+    if (stage === '🥚') return "Planting the seed..."
+    if (stage === '🐣') return "It's hatching! Keep focusing."
+    if (stage === '🐥') return "Look at it go!"
+    if (stage === '🐓') return "You raised a Super Chicken!"
+    return "Focus..."
   }
 
   useEffect(() => {
@@ -25,65 +72,31 @@ function PomodoroTimer() {
       interval = setInterval(() => {
         setTimeLeft((prevTime) => prevTime - 1)
       }, 1000)
-    } else if (timeLeft === 0) {
+    } else if (timeLeft === 0 && isActive) {
       setIsActive(false)
-      // Play sound
-      const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg')
-      audio.play().catch(e => console.error("Error playing sound:", e))
+      playNotificationSound()
 
-      if (mode === 'work') {
-        alert('Work session complete! Take a break.')
-      } else {
-        alert('Break over! Time to focus.')
+      // Browser Notification
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification("Time's up!", { body: getEncouragement() })
       }
-      // Call handleTimerComplete to switch modes and show browser notification
-      handleTimerComplete()
     }
     return () => clearInterval(interval)
-  }, [isActive, timeLeft, mode])
+  }, [isActive, timeLeft])
 
-  const handleTimerComplete = () => {
-    // setIsActive(false) // This is now handled in useEffect
-
-    if (mode === 'work') {
-      const newSessions = sessions + 1
-      setSessions(newSessions)
-
-      // After 4 work sessions, take a long break
-      if (newSessions % 4 === 0) {
-        setMode('longBreak')
-        setTimeLeft(modes.longBreak.duration)
-      } else {
-        setMode('shortBreak')
-        setTimeLeft(modes.shortBreak.duration)
-      }
-    } else {
-      setMode('work')
-      setTimeLeft(modes.work.duration)
-    }
-
-    // Play notification sound (browser notification)
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(`${modes[mode].label} Complete!`, {
-        body: mode === 'work' ? 'Time for a break!' : 'Time to focus!',
-        icon: '/favicon.ico'
-      })
-    }
-  }
-
-  const toggleTimer = () => {
-    setIsActive(!isActive)
-  }
+  const toggleTimer = () => setIsActive(!isActive)
 
   const resetTimer = () => {
     setIsActive(false)
     setTimeLeft(modes[mode].duration)
+    setTotalDuration(modes[mode].duration)
   }
 
   const switchMode = (newMode) => {
     setIsActive(false)
     setMode(newMode)
     setTimeLeft(modes[newMode].duration)
+    setTotalDuration(modes[newMode].duration)
   }
 
   const formatTime = (seconds) => {
@@ -92,134 +105,100 @@ function PomodoroTimer() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
-  const progress = ((modes[mode].duration - timeLeft) / modes[mode].duration) * 100
-  const currentColor = getModeColor(mode)
-
   return (
-    <div className="page" style={{ alignItems: 'center', justifyContent: 'center' }}>
-      <div className="pomodoro-container" style={{
-        maxWidth: '500px',
-        width: '100%',
-        background: 'var(--card-background)',
-        borderRadius: 'var(--radius)',
-        border: '1px solid var(--border-color)',
-        padding: '2rem',
+    <div className="page" style={{ alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+      <div className="pomodoro-minimal" style={{
+        textAlign: 'center',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '2rem',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+        gap: '2rem'
       }}>
 
-        <div className="pomodoro-header" style={{ textAlign: 'center' }}>
-          <h1 style={{ marginBottom: '0.5rem' }}>Pomodoro Timer</h1>
-          <div className="session-counter" style={{
-            background: 'var(--background-color)',
-            padding: '0.5rem 1rem',
-            borderRadius: '20px',
-            fontSize: '0.9rem',
-            color: 'var(--text-secondary)'
-          }}>
-            Sessions Completed: <span style={{ fontWeight: 700, color: 'var(--primary-color)' }}>{sessions}</span>
-          </div>
-        </div>
-
-        <div className="pomodoro-modes" style={{ display: 'flex', gap: '0.5rem' }}>
-          {Object.entries(modes).map(([key, modeData]) => (
+        {/* Mode Switcher (Pill) */}
+        <div style={{
+          display: 'flex',
+          background: 'var(--border-color)',
+          padding: '4px',
+          borderRadius: '50px',
+          marginBottom: '1rem'
+        }}>
+          {Object.entries(modes).map(([key, m]) => (
             <button
               key={key}
-              className={`mode-btn`}
               onClick={() => switchMode(key)}
               style={{
-                padding: '0.5rem 1rem',
+                background: mode === key ? 'var(--card-background)' : 'transparent',
+                color: mode === key ? 'var(--text-primary)' : 'var(--text-secondary)',
                 border: 'none',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                background: mode === key ? getModeColor(key) : 'transparent',
-                color: mode === key ? 'white' : 'var(--text-secondary)',
+                padding: '8px 16px',
+                borderRadius: '50px',
                 fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: mode === key ? '0 2px 5px rgba(0,0,0,0.1)' : 'none',
                 transition: 'all 0.2s'
               }}
             >
-              {modeData.label}
+              {m.label}
             </button>
           ))}
         </div>
 
-        <div className="timer-display" style={{ position: 'relative', width: '280px', height: '280px' }}>
-          <svg className="progress-ring" width="280" height="280" style={{ transform: 'rotate(-90deg)' }}>
-            <circle
-              className="progress-ring-bg"
-              cx="140"
-              cy="140"
-              r="130"
-              stroke="var(--background-color)"
-              strokeWidth="8"
-              fill="transparent"
-            />
-            <circle
-              className="progress-ring-fill"
-              cx="140"
-              cy="140"
-              r="130"
-              stroke={currentColor}
-              strokeWidth="8"
-              fill="transparent"
-              style={{
-                strokeDasharray: `${2 * Math.PI * 130}`,
-                strokeDashoffset: `${2 * Math.PI * 130 * (1 - progress / 100)}`,
-                transition: 'stroke-dashoffset 1s linear, stroke 0.3s'
-              }}
-            />
-          </svg>
-          <div className="timer-text" style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            textAlign: 'center'
-          }}>
-            <div className="time" style={{ fontSize: '4rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{formatTime(timeLeft)}</div>
-            <div className="mode-label" style={{ color: 'var(--text-secondary)', fontSize: '1.2rem' }}>{modes[mode].label}</div>
-          </div>
+        {/* Character Display */}
+        <div className="hen-character" style={{
+          fontSize: '8rem',
+          lineHeight: 1,
+          filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.1))',
+          animation: isActive ? 'breathe 3s infinite ease-in-out' : 'none',
+          transition: 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+        }}>
+          {getGrowthStage()}
         </div>
 
-        <div className="timer-controls" style={{ display: 'flex', gap: '1rem' }}>
+        {/* Timer Display */}
+        <div className="timer-display-minimal">
+          <div style={{ fontSize: '5rem', fontWeight: 800, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+            {formatTime(timeLeft)}
+          </div>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '1.1rem' }}>
+            {getEncouragement()}
+          </p>
+        </div>
+
+        {/* Controls */}
+        <div className="timer-controls">
           <button
             onClick={toggleTimer}
+            className="play-btn"
             style={{
-              padding: '0.75rem 2rem',
-              fontSize: '1.1rem',
-              fontWeight: 600,
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
               border: 'none',
-              borderRadius: 'var(--radius)',
-              background: currentColor,
-              color: 'white',
+              background: 'var(--text-primary)',
+              color: 'var(--card-background)',
+              fontSize: '1.5rem',
               cursor: 'pointer',
-              minWidth: '120px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
               transition: 'transform 0.1s'
             }}
           >
-            {isActive ? 'Pause' : 'Start'}
-          </button>
-          <button
-            onClick={resetTimer}
-            style={{
-              padding: '0.75rem 2rem',
-              fontSize: '1.1rem',
-              fontWeight: 600,
-              border: `1px solid ${currentColor}`,
-              borderRadius: 'var(--radius)',
-              background: 'transparent',
-              color: currentColor,
-              cursor: 'pointer',
-              minWidth: '120px'
-            }}
-          >
-            Reset
+            {isActive ? '⏸' : '▶'}
           </button>
         </div>
+
       </div>
+
+      <style>{`
+        @keyframes breathe {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+        .play-btn:active { transform: scale(0.95); }
+      `}</style>
     </div>
   )
 }

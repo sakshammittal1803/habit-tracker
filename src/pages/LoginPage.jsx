@@ -1,30 +1,89 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
-import { auth } from "../firebase";
+import { GoogleAuthProvider, signInWithCredential, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth, db } from "../firebase";
+import { doc, setDoc } from "firebase/firestore";
 import './LoginPage.css';
 
 const LoginPage = ({ onLogin }) => {
+    const [isSignUp, setIsSignUp] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [name, setName] = useState('');
+    const [age, setAge] = useState('');
+    const [gender, setGender] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Simple mock login
-        if (email && password) {
-            // Mock user data for manual login
-            const mockUser = {
-                name: 'Test User',
-                email: email,
-                picture: null // No picture for manual login
-            };
-            // For manual login, valid Firebase auth is also needed for the app to work correctly
-            // But for now, we are focusing on fixing Google Login
-            alert('Please use Google Sign In');
-        } else {
+        setLoading(true);
+
+        if (!email || !password) {
             alert('Please enter email and password');
+            setLoading(false);
+            return;
+        }
+
+        if (isSignUp && (!name || !age || !gender)) {
+            alert('Please fill in Name, Age, and Gender');
+            setLoading(false);
+            return;
+        }
+
+        try {
+            if (isSignUp) {
+                // Sign Up Logic
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                console.log("Account created:", userCredential.user);
+
+                // Save Profile to Firestore
+                try {
+                    await setDoc(doc(db, "users", userCredential.user.uid), {
+                        name: name,
+                        age: age,
+                        gender: gender,
+                        email: email,
+                        profileCompleted: true,
+                        hasPaid: false,
+                        trialStartDate: new Date().toISOString()
+                    });
+
+                    // Update Auth Profile
+                    await updateProfile(userCredential.user, { displayName: name });
+                    console.log("Profile saved and updated.");
+
+                } catch (dbError) {
+                    console.error("Error saving profile:", dbError);
+                    // Continue anyway, App.jsx handles missing data gracefully or user can edit later
+                }
+
+            } else {
+                // Sign In Logic
+                await signInWithEmailAndPassword(auth, email, password);
+                console.log("Logged in successfully");
+            }
+        } catch (error) {
+            console.error("Auth error:", error);
+            if (isSignUp) {
+                if (error.code === 'auth/email-already-in-use') {
+                    alert("This email is already registered. Please switch to Sign In.");
+                } else {
+                    alert(`Signup failed: ${error.message}`);
+                }
+            } else {
+                // Login Error Handling
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                    alert("Invalid email or password. If you are new, please switch to Sign Up.");
+                } else if (error.code === 'auth/operation-not-allowed') {
+                    alert("Email/Password Sign-In is disabled. Please enable it in the Firebase Console.");
+                } else {
+                    alert(`Login failed: ${error.message}`);
+                }
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -34,10 +93,6 @@ const LoginPage = ({ onLogin }) => {
             const credential = GoogleAuthProvider.credential(credentialResponse.credential);
             const result = await signInWithCredential(auth, credential);
             console.log("Firebase Sign-In Success:", result.user);
-
-            // App.jsx listens to onAuthStateChanged and will handle the redirect
-            // But we can navigate to be sure, though onAuthStateChanged should trigger it.
-            // navigate('/'); 
         } catch (error) {
             console.error("Firebase Auth Error:", error);
             alert(`Login failed: ${error.message}`);
@@ -52,12 +107,75 @@ const LoginPage = ({ onLogin }) => {
     return (
         <div className="login-page">
             <div className="login-card">
+                <div className="auth-tabs">
+                    <button
+                        className={`tab-btn ${!isSignUp ? 'active' : ''}`}
+                        onClick={() => setIsSignUp(false)}
+                    >
+                        Sign In
+                    </button>
+                    <button
+                        className={`tab-btn ${isSignUp ? 'active' : ''}`}
+                        onClick={() => setIsSignUp(true)}
+                    >
+                        Sign Up
+                    </button>
+                </div>
+
                 <div className="login-header">
-                    <h1>Login or Sign Up</h1>
-                    <p>Enter your details to protect your progress</p>
+                    <h1>{isSignUp ? 'Create Account' : 'Welcome Back'}</h1>
+                    <p>{isSignUp ? 'Start your journey today' : 'Enter your details to continue'}</p>
                 </div>
 
                 <form className="login-form" onSubmit={handleSubmit}>
+                    {isSignUp && (
+                        <>
+                            <div className="form-group">
+                                <label htmlFor="name">Full Name</label>
+                                <input
+                                    id="name"
+                                    className="form-input"
+                                    type="text"
+                                    placeholder="e.g. John Doe"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="age">Age</label>
+                                <input
+                                    id="age"
+                                    className="form-input"
+                                    type="number"
+                                    placeholder="e.g. 25"
+                                    value={age}
+                                    onChange={(e) => setAge(e.target.value)}
+                                    required
+                                    min="10"
+                                    max="120"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="gender">Gender</label>
+                                <select
+                                    id="gender"
+                                    className="form-input"
+                                    value={gender}
+                                    onChange={(e) => setGender(e.target.value)}
+                                    required
+                                    style={{ background: 'var(--card-background)', color: 'var(--text-primary)' }}
+                                >
+                                    <option value="" disabled>Select Gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                    <option value="prefer_not_to_say">Prefer not to say</option>
+                                </select>
+                            </div>
+                        </>
+                    )}
+
                     <div className="form-group">
                         <label htmlFor="email">Email Address</label>
                         <input
@@ -68,6 +186,9 @@ const LoginPage = ({ onLogin }) => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
+                            autoComplete="username"
+                            onInvalid={(e) => e.target.setCustomValidity("Please enter correct I'D")}
+                            onInput={(e) => e.target.setCustomValidity('')}
                         />
                     </div>
                     <div className="form-group">
@@ -80,10 +201,11 @@ const LoginPage = ({ onLogin }) => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
+                            autoComplete={isSignUp ? "new-password" : "current-password"}
                         />
                     </div>
-                    <button type="submit" className="login-button">
-                        Sign In
+                    <button type="submit" className="login-button" disabled={loading}>
+                        {loading ? 'Processing...' : (isSignUp ? 'Sign Up' : 'Sign In')}
                     </button>
                 </form>
 
