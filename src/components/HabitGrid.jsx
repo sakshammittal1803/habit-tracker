@@ -1,8 +1,8 @@
 import HabitRow from './HabitRow'
 import { getMonthDates } from '../utils/dateUtils'
 
-function HabitGrid({ habits, currentMonthStart, onDeleteHabit, onToggleCompletion }) {
-  const monthDates = getMonthDates(currentMonthStart)
+function HabitGrid({ habits, dates, onDeleteHabit, onToggleCompletion }) {
+  // Dates are now passed in
   const daysOfWeek = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
   if (habits.length === 0) {
@@ -18,26 +18,26 @@ function HabitGrid({ habits, currentMonthStart, onDeleteHabit, onToggleCompletio
 
   return (
     <div className="habits-container">
-      {/* Header Row */}
-      <div className="grid-header">
-        <div className="col-name">HABIT</div>
-        <div className="col-days">
-          {monthDates.map((date) => (
-            <div key={date.toISOString()} className="header-day-cell">
-              {date.getDate()}
-            </div>
-          ))}
-        </div>
-        <div className="col-stats">ANALYSIS</div>
-      </div>
-
-      {/* Rows Container (Scrollable) */}
+      {/* Rows Container (Scrollable) includes Header now for sync scroll */}
       <div className="rows-container">
+        {/* Header Row - Sticky */}
+        <div className="grid-header">
+          <div className="col-name">HABIT</div>
+          <div className="col-days">
+            {dates.map((date) => (
+              <div key={date.toISOString()} className="header-day-cell">
+                {date.getDate()}
+              </div>
+            ))}
+          </div>
+          <div className="col-stats">ANALYSIS</div>
+        </div>
+
         {habits.map(habit => (
           <HabitRow
             key={habit.id}
             habit={habit}
-            currentMonthStart={currentMonthStart}
+            dates={dates}
             onDelete={() => onDeleteHabit(habit.id)}
             onToggleCompletion={onToggleCompletion}
           />

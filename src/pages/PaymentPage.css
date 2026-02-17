@@ -7,10 +7,11 @@
     align-items: center;
     /* Use justify-content: start with padding to allow scrolling without clipping */
     justify-content: flex-start;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: var(--background-color);
     padding: 40px 20px 100px 20px;
     /* Extra bottom padding for mobile nav */
     font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
 }
 
 .payment-header {
@@ -37,9 +38,9 @@
 
 /* Common Card Styles */
 .payment-card {
-    background: white;
+    background: var(--card-background);
     border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
     padding: 30px;
     flex: 1 1 300px;
     /* flex-grow, flex-shrink, flex-basis */
@@ -58,25 +59,25 @@
 
 .payment-header h1 {
     font-size: 2.5rem;
-    color: #1a202c;
+    color: var(--text-primary);
     margin-bottom: 10px;
     font-weight: 700;
 }
 
 .payment-header p {
-    color: #718096;
+    color: var(--text-secondary);
     font-size: 1.1rem;
 }
 
 .card-title {
     font-size: 1.5rem;
-    color: #1a202c;
+    color: var(--text-primary);
     margin-bottom: 0.5rem;
     font-weight: 700;
 }
 
 .card-subtitle {
-    color: #718096;
+    color: var(--text-secondary);
     font-size: 0.9rem;
     margin-bottom: 1.5rem;
 }
@@ -94,12 +95,12 @@
 .amount {
     font-size: 3.5rem;
     font-weight: 800;
-    color: #3182ce;
+    color: var(--primary-color);
     line-height: 1;
 }
 
 .period {
-    color: #718096;
+    color: var(--text-secondary);
     font-size: 1rem;
     font-weight: 500;
     display: block;
@@ -117,11 +118,11 @@
 
 .features-list li {
     padding: 10px 0;
-    color: #4a5568;
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     font-size: 0.95rem;
-    border-bottom: 1px solid #edf2f7;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .features-list li:last-child {
@@ -129,7 +130,7 @@
 }
 
 .check-icon {
-    color: #48bb78;
+    color: var(--success-color);
     margin-right: 10px;
     font-weight: bold;
     font-size: 1.1rem;
@@ -140,7 +141,8 @@
 }
 
 .cross-icon {
-    color: #cbd5e0;
+    color: var(--text-secondary);
+    opacity: 0.5;
     margin-right: 10px;
     font-weight: bold;
     font-size: 1.1rem;
@@ -149,7 +151,7 @@
 .checkout-btn {
     width: 100%;
     padding: 15px;
-    background: linear-gradient(90deg, #3182ce 0%, #4299e1 100%);
+    background: var(--primary-gradient);
     color: white;
     border: none;
     border-radius: 10px;
@@ -170,9 +172,9 @@
 .current-plan-btn {
     width: 100%;
     padding: 15px;
-    background: #edf2f7;
-    color: #4a5568;
-    border: none;
+    background: var(--background-color);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     font-size: 1.1rem;
     font-weight: 600;

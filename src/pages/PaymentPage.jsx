@@ -106,8 +106,8 @@ const PaymentPage = ({ onPaymentSuccess, user, trialDaysLeft, hasPaid }) => {
                 </div>
 
                 {/* Pro Card */}
-                <div className="payment-card" style={{ border: '2px solid #3182ce', transform: 'scale(1.02)' }}>
-                    <div style={{ background: '#3182ce', color: 'white', padding: '0.2rem 1rem', borderRadius: '20px', fontSize: '0.8rem', position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', fontWeight: '600' }}>
+                <div className="payment-card" style={{ border: '2px solid var(--primary-color)', transform: 'scale(1.02)' }}>
+                    <div style={{ background: 'var(--primary-color)', color: 'white', padding: '0.2rem 1rem', borderRadius: '20px', fontSize: '0.8rem', position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', fontWeight: '600' }}>
                         MOST POPULAR
                     </div>
                     <h2 className="card-title">Lifetime Pro</h2>

@@ -3,17 +3,38 @@ import HabitForm from '../components/HabitForm'
 import MonthNavigation from '../components/MonthNavigation'
 import HabitGrid from '../components/HabitGrid'
 import DashboardGraph from '../components/DashboardGraph'
-import { getMonthStart } from '../utils/dateUtils'
+import { getMonthStart, getMonthDates, getWeekStart, getWeekDates } from '../utils/dateUtils'
 
 function MonthlyView({ habits, onAddHabit, onDeleteHabit, onToggleCompletion, hasPaid }) {
   console.log('MonthlyView rendering')
-  const [currentMonthStart, setCurrentMonthStart] = useState(getMonthStart(new Date()))
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [viewMode, setViewMode] = useState('monthly') // 'monthly' or 'weekly'
 
-  const navigateMonth = (direction) => {
-    const newDate = new Date(currentMonthStart)
-    newDate.setMonth(newDate.getMonth() + direction)
-    setCurrentMonthStart(getMonthStart(newDate))
+  // Calculate dates based on view mode
+  let datesToRender = []
+  let displayDateStart = null
+
+  if (viewMode === 'monthly') {
+    displayDateStart = getMonthStart(currentDate)
+    datesToRender = getMonthDates(displayDateStart)
+  } else {
+    displayDateStart = getWeekStart(currentDate)
+    datesToRender = getWeekDates(displayDateStart)
   }
+
+  const navigate = (direction) => {
+    const newDate = new Date(currentDate)
+    if (viewMode === 'monthly') {
+      newDate.setMonth(newDate.getMonth() + direction)
+    } else {
+      newDate.setDate(newDate.getDate() + (direction * 7))
+    }
+    setCurrentDate(newDate)
+  }
+
+  // Helper for navigation component (it usually expects a month start, but we can adapt)
+  // For now, let's keep MonthNavigation as is, but maybe we should rename it or make it smarter.
+  // Actually, MonthNavigation displays the month name. For weekly view, we might want to show the month of the week start.
 
   return (
     <div className="page" style={{ padding: '1rem', height: '100%', overflow: 'hidden', position: 'relative' }}>
@@ -27,9 +48,7 @@ function MonthlyView({ habits, onAddHabit, onDeleteHabit, onToggleCompletion, ha
           bottom: 0,
           backgroundColor: 'rgba(255, 255, 255, 0.5)',
           zIndex: 10,
-          pointerEvents: 'none', // Allow clicks to go through to trigger alerts, or block them?
-          // User asked for "freezed". Alerts in App.jsx handle the click logic.
-          // But visual indication is good.
+          pointerEvents: 'none',
         }}>
           <div style={{
             position: 'absolute',
@@ -42,7 +61,7 @@ function MonthlyView({ habits, onAddHabit, onDeleteHabit, onToggleCompletion, ha
             boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
             textAlign: 'center',
             border: '1px solid #e5e7eb',
-            pointerEvents: 'auto' // Re-enable clicks for this banner
+            pointerEvents: 'auto'
           }}>
             <h2 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>Premium Features Locked</h2>
             <p style={{ color: '#666', marginBottom: '1rem' }}>Upgrade to track habits!</p>
@@ -62,10 +81,55 @@ function MonthlyView({ habits, onAddHabit, onDeleteHabit, onToggleCompletion, ha
       <header style={{ opacity: hasPaid ? 1 : 0.5, pointerEvents: hasPaid ? 'auto' : 'none' }}>
         <div className="header-controls">
           <h1 style={{ margin: 0 }}>My Habits</h1>
-          <MonthNavigation
-            currentMonthStart={currentMonthStart}
-            onNavigate={navigateMonth}
-          />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            {/* View Toggle */}
+            <div style={{
+              display: 'flex',
+              background: 'var(--card-background)',
+              padding: '4px',
+              borderRadius: '8px',
+              border: '1px solid var(--border-color)'
+            }}>
+              <button
+                onClick={() => setViewMode('monthly')}
+                style={{
+                  background: viewMode === 'monthly' ? 'var(--primary-color)' : 'transparent',
+                  color: viewMode === 'monthly' ? 'white' : 'var(--text-secondary)',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '4px 12px',
+                  cursor: 'pointer',
+                  fontSize: '0.8rem',
+                  fontWeight: '600',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setViewMode('weekly')}
+                style={{
+                  background: viewMode === 'weekly' ? 'var(--primary-color)' : 'transparent',
+                  color: viewMode === 'weekly' ? 'white' : 'var(--text-secondary)',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '4px 12px',
+                  cursor: 'pointer',
+                  fontSize: '0.8rem',
+                  fontWeight: '600',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Weekly
+              </button>
+            </div>
+
+            <MonthNavigation
+              currentMonthStart={displayDateStart}
+              onNavigate={navigate}
+            />
+          </div>
         </div>
         <HabitForm onAddHabit={onAddHabit} />
       </header>
@@ -73,14 +137,14 @@ function MonthlyView({ habits, onAddHabit, onDeleteHabit, onToggleCompletion, ha
       <div style={{ opacity: hasPaid ? 1 : 0.5, pointerEvents: hasPaid ? 'auto' : 'none', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <HabitGrid
           habits={habits}
-          currentMonthStart={currentMonthStart}
+          dates={datesToRender}
           onDeleteHabit={onDeleteHabit}
           onToggleCompletion={onToggleCompletion}
         />
 
         <DashboardGraph
           habits={habits}
-          currentMonthStart={currentMonthStart}
+          currentMonthStart={displayDateStart} // Keep graph monthly for now? Or should it adapt? The component implies it needs a start date.
         />
       </div>
     </div>

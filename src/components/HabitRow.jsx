@@ -1,17 +1,18 @@
 import { getMonthDates, formatDate } from '../utils/dateUtils'
 
-function HabitRow({ habit, currentMonthStart, onDelete, onToggleCompletion }) {
-  const monthDates = getMonthDates(currentMonthStart)
+function HabitRow({ habit, dates, onDelete, onToggleCompletion }) {
   const today = new Date()
   const todayStr = formatDate(today)
 
-  // Calculate stats
-  const currentMonthCompletions = monthDates.filter(date => {
+  // Calculate stats based on the rendered dates
+  const currentPeriodCompletions = dates.filter(date => {
     return habit.completions[formatDate(date)]
   }).length
 
-  const goal = habit.goal || monthDates.length
-  const progress = Math.round((currentMonthCompletions / goal) * 100)
+  // Goal depends on the view (dates.length)
+  // If habit has a specific goal, we might need to adjust, but for now let's use the period length as the default denominator
+  const goal = dates.length
+  const progress = Math.round((currentPeriodCompletions / goal) * 100)
 
   return (
     <div className="habit-row">
@@ -24,7 +25,7 @@ function HabitRow({ habit, currentMonthStart, onDelete, onToggleCompletion }) {
 
       {/* Days Grid Column - Flex layout (No scroll) */}
       <div className="col-days">
-        {monthDates.map((date) => {
+        {dates.map((date) => {
           const dateStr = formatDate(date)
           const isCompleted = habit.completions[dateStr]
           const isToday = dateStr === todayStr
@@ -57,7 +58,7 @@ function HabitRow({ habit, currentMonthStart, onDelete, onToggleCompletion }) {
         </div>
         <div className="stat-item">
           <span className="stat-label">Actual</span>
-          <span className="stat-value">{currentMonthCompletions}</span>
+          <span className="stat-value">{currentPeriodCompletions}</span>
         </div>
         <div className="stat-item" style={{ flex: 1, alignItems: 'stretch', width: '100%' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
