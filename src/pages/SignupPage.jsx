@@ -24,17 +24,14 @@ const SignupPage = ({ user, onComplete }) => {
 
             const userRef = doc(db, "users", auth.currentUser.uid);
 
-            // Update user profile in Firestore
             await setDoc(userRef, {
                 name: name,
                 age: age,
                 gender: gender,
                 profileCompleted: true,
                 email: auth.currentUser.email,
-                // Preserve existing fields if any (like trialStartDate)
-            }, { merge: true }); // Merge checks for existing fields
+            }, { merge: true });
 
-            // Also update auth profile display name
             await updateProfile(auth.currentUser, { displayName: name });
 
             if (onComplete) {
@@ -50,64 +47,77 @@ const SignupPage = ({ user, onComplete }) => {
     };
 
     return (
-        <div className="login-page">
-            <div className="login-card">
-                <div className="login-header">
-                    <h1>Complete Your Profile</h1>
-                    <p>Tell us a bit about yourself to personalize your experience.</p>
+        <div className="login-page-v2">
+            <div className="mesh-gradient-bg"></div>
+
+            <div className="auth-container">
+                <div className="auth-welcome-panel">
+                    <div className="welcome-content">
+                        <div className="logo-badge">🚀 HabitTracker</div>
+                        <h1 className="welcome-title">One Last <br /><span>Step.</span></h1>
+                        <p className="welcome-subtitle">
+                            "Motivation is what gets you started. Habit is what keeps you going."
+                        </p>
+                    </div>
                 </div>
 
-                <form className="login-form" onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label htmlFor="name">Full Name</label>
-                        <input
-                            id="name"
-                            className="form-input"
-                            type="text"
-                            placeholder="e.g. John Doe"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                        />
-                    </div>
+                <div className="auth-form-panel">
+                    <div className="login-card-v2">
+                        <div className="login-header-v2">
+                            <h2>Complete Profile</h2>
+                            <p>Tell us about yourself to personalize your experience.</p>
+                        </div>
 
-                    <div className="form-group">
-                        <label htmlFor="age">Age</label>
-                        <input
-                            id="age"
-                            className="form-input"
-                            type="number"
-                            placeholder="e.g. 25"
-                            value={age}
-                            onChange={(e) => setAge(e.target.value)}
-                            required
-                            min="10"
-                            max="120"
-                        />
-                    </div>
+                        <form className="login-form-v2" onSubmit={handleSubmit}>
+                            <div className="form-group-v2">
+                                <label htmlFor="name">Full Name</label>
+                                <input
+                                    id="name"
+                                    type="text"
+                                    placeholder="e.g. John Doe"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                />
+                            </div>
 
-                    <div className="form-group">
-                        <label htmlFor="gender">Gender</label>
-                        <select
-                            id="gender"
-                            className="form-input"
-                            value={gender}
-                            onChange={(e) => setGender(e.target.value)}
-                            required
-                            style={{ background: 'var(--card-background)', color: 'var(--text-primary)' }}
-                        >
-                            <option value="" disabled>Select Gender</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                            <option value="other">Other</option>
-                            <option value="prefer_not_to_say">Prefer not to say</option>
-                        </select>
-                    </div>
+                            <div className="form-group-row">
+                                <div className="form-group-v2">
+                                    <label htmlFor="age">Age</label>
+                                    <input
+                                        id="age"
+                                        type="number"
+                                        placeholder="25"
+                                        value={age}
+                                        onChange={(e) => setAge(e.target.value)}
+                                        required
+                                        min="10"
+                                        max="120"
+                                    />
+                                </div>
 
-                    <button type="submit" className="login-button" disabled={loading}>
-                        {loading ? 'Saving...' : 'Get Started'}
-                    </button>
-                </form>
+                                <div className="form-group-v2">
+                                    <label htmlFor="gender">Gender</label>
+                                    <select
+                                        id="gender"
+                                        value={gender}
+                                        onChange={(e) => setGender(e.target.value)}
+                                        required
+                                    >
+                                        <option value="" disabled>Select</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button type="submit" className="submit-btn-v2" disabled={loading}>
+                                {loading ? 'Saving...' : 'Get Started'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     );

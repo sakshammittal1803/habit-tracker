@@ -9,6 +9,9 @@ import PomodoroPage from './pages/PomodoroPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import PaymentPage from './pages/PaymentPage'
+import ProfilePage from './pages/ProfilePage'
+import BuddiesPage from './pages/BuddiesPage'
+import NotificationManager from './components/NotificationManager'
 import { auth, db } from './firebase'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { doc, getDoc, setDoc, onSnapshot, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore'
@@ -63,22 +66,20 @@ function App() {
             await updateDoc(userRef, { trialStartDate: currentTrialStartDate });
           }
 
-          // If Google user, assume profile is complete (bypass signup)
-          if (isGoogleUser) {
-            setProfileCompleted(true);
-          } else {
-            setProfileCompleted(userData.profileCompleted || false);
-          }
+          // Use the flag from Firestore strictly
+          setProfileCompleted(userData.profileCompleted || false);
         } else {
-          // Create user doc if not exists
+          // New User
+          // If Google user, we might want to auto-complete or let them fill age/gender
+          // USER wants to be asked ONCE. So we set it to false initially and let them complete it.
           await setDoc(userRef, {
             hasPaid: false,
             email: item.email,
             trialStartDate: currentTrialStartDate,
-            profileCompleted: isGoogleUser, // Auto-complete for Google
+            profileCompleted: false, // Force profile completion at least once
             name: isGoogleUser ? item.displayName : null
           });
-          setProfileCompleted(isGoogleUser);
+          setProfileCompleted(false);
         }
         setTrialStartDate(currentTrialStartDate);
 
@@ -148,16 +149,16 @@ function App() {
   }, [])
 
   // Calculate Access
-  const oneMonthMs = 30 * 24 * 60 * 60 * 1000;
+  const trialPeriodMs = 7 * 24 * 60 * 60 * 1000;
   // Use trialStartDate from state, or fallback to now if not yet set (though it should be set in auth listener)
   // We need to parse the date strings. creationTime is usually a string.
   const timeElapsed = trialStartDate ? new Date() - new Date(trialStartDate) : 0;
-  const isTrialActive = trialStartDate && (timeElapsed < oneMonthMs);
-  const trialDaysLeft = isTrialActive ? Math.ceil((oneMonthMs - timeElapsed) / (24 * 60 * 60 * 1000)) : 0;
+  const isTrialActive = trialStartDate && (timeElapsed < trialPeriodMs);
+  const trialDaysLeft = isTrialActive ? Math.ceil((trialPeriodMs - timeElapsed) / (24 * 60 * 60 * 1000)) : 0;
 
   const hasAccess = hasPaid || isTrialActive;
 
-  const addHabit = async (habitName) => {
+  const addHabit = async (habitData) => {
     if (!hasAccess) {
       alert("Your free trial has ended. Please upgrade to Premium to add habits!")
       return
@@ -165,9 +166,12 @@ function App() {
     const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()
     const newHabit = {
       id: Date.now(),
-      name: habitName,
+      name: habitData.name || habitData, // Fallback if string is passed
+      category: habitData.category || 'Other',
+      frequency: habitData.frequency || 'daily',
       goal: daysInMonth,
-      completions: {}
+      completions: {},
+      notes: {}
     }
 
     // Optimistic update
@@ -191,6 +195,14 @@ function App() {
     if (auth.currentUser) {
       const habitsRef = doc(db, "user_habits", auth.currentUser.uid);
       await setDoc(habitsRef, { habits: newHabits }, { merge: true });
+    }
+  }
+
+  const overwriteHabits = async (newHabits) => {
+    setHabits(newHabits);
+    if (auth.currentUser) {
+      const habitsRef = doc(db, "user_habits", auth.currentUser.uid);
+      await setDoc(habitsRef, { habits: newHabits });
     }
   }
 
@@ -221,6 +233,30 @@ function App() {
     }
   }
 
+  const updateHabitNote = async (habitId, dateStr, note) => {
+    if (!hasAccess) return;
+
+    const newHabits = habits.map(habit => {
+      if (habit.id === habitId) {
+        const newNotes = { ...(habit.notes || {}) };
+        if (note.trim() === '') {
+          delete newNotes[dateStr];
+        } else {
+          newNotes[dateStr] = note;
+        }
+        return { ...habit, notes: newNotes };
+      }
+      return habit;
+    });
+
+    setHabits(newHabits);
+
+    if (auth.currentUser) {
+      const habitsRef = doc(db, "user_habits", auth.currentUser.uid);
+      await setDoc(habitsRef, { habits: newHabits }, { merge: true });
+    }
+  }
+
   if (isLoading) {
     return (
       <ThemeProvider>
@@ -232,6 +268,7 @@ function App() {
   return (
     <ThemeProvider>
       <div className="app">
+        <NotificationManager habits={habits} />
         {isAuthenticated && <Navbar user={user} onLogout={handleLogout} />}
         <div className="container">
           <Routes>
@@ -249,6 +286,7 @@ function App() {
                       onAddHabit={addHabit}
                       onDeleteHabit={deleteHabit}
                       onToggleCompletion={toggleCompletion}
+                      onUpdateNote={updateHabitNote}
                       hasPaid={hasAccess}
                     />
                   }
@@ -260,6 +298,14 @@ function App() {
                 <Route
                   path="/pomodoro"
                   element={<PomodoroPage />}
+                />
+                <Route
+                  path="/profile"
+                  element={<ProfilePage user={user} habits={habits} onImportHabits={overwriteHabits} />}
+                />
+                <Route
+                  path="/buddies"
+                  element={<BuddiesPage user={user} />}
                 />
               </>
             ) : (

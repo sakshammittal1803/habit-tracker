@@ -34,65 +34,30 @@ const LoginPage = ({ onLogin }) => {
 
         try {
             if (isSignUp) {
-                // Sign Up Logic
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                console.log("Account created:", userCredential.user);
-
-                // Save Profile to Firestore
-                try {
-                    await setDoc(doc(db, "users", userCredential.user.uid), {
-                        name: name,
-                        age: age,
-                        gender: gender,
-                        email: email,
-                        profileCompleted: true,
-                        hasPaid: false,
-                        trialStartDate: new Date().toISOString()
-                    });
-
-                    // Update Auth Profile
-                    await updateProfile(userCredential.user, { displayName: name });
-                    console.log("Profile saved and updated.");
-
-                } catch (dbError) {
-                    console.error("Error saving profile:", dbError);
-                    // Continue anyway, App.jsx handles missing data gracefully or user can edit later
-                }
-
+                const userRef = doc(db, "users", userCredential.user.uid);
+                await setDoc(userRef, {
+                    name, age, gender, email,
+                    profileCompleted: true,
+                    hasPaid: false,
+                    trialStartDate: new Date().toISOString()
+                });
+                await updateProfile(userCredential.user, { displayName: name });
             } else {
-                // Sign In Logic
                 await signInWithEmailAndPassword(auth, email, password);
-                console.log("Logged in successfully");
             }
         } catch (error) {
             console.error("Auth error:", error);
-            if (isSignUp) {
-                if (error.code === 'auth/email-already-in-use') {
-                    alert("This email is already registered. Please switch to Sign In.");
-                } else {
-                    alert(`Signup failed: ${error.message}`);
-                }
-            } else {
-                // Login Error Handling
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                    alert("Invalid email or password. If you are new, please switch to Sign Up.");
-                } else if (error.code === 'auth/operation-not-allowed') {
-                    alert("Email/Password Sign-In is disabled. Please enable it in the Firebase Console.");
-                } else {
-                    alert(`Login failed: ${error.message}`);
-                }
-            }
+            alert(`Error: ${error.message}`);
         } finally {
             setLoading(false);
         }
     };
 
     const handleGoogleSuccess = async (credentialResponse) => {
-        console.log('Google Login Response:', credentialResponse);
         try {
             const credential = GoogleAuthProvider.credential(credentialResponse.credential);
-            const result = await signInWithCredential(auth, credential);
-            console.log("Firebase Sign-In Success:", result.user);
+            await signInWithCredential(auth, credential);
         } catch (error) {
             console.error("Firebase Auth Error:", error);
             alert(`Login failed: ${error.message}`);
@@ -100,14 +65,13 @@ const LoginPage = ({ onLogin }) => {
     };
 
     const handleGoogleError = () => {
-        console.log('Google Login Failed');
         alert('Google Login Failed. Please try again.');
     };
 
     return (
         <div className="login-page">
-            <div className="login-card">
-                <div className="auth-tabs">
+            <div className="auth-card">
+                <div className="tab-container">
                     <button
                         className={`tab-btn ${!isSignUp ? 'active' : ''}`}
                         onClick={() => setIsSignUp(false)}
@@ -122,100 +86,93 @@ const LoginPage = ({ onLogin }) => {
                     </button>
                 </div>
 
-                <div className="login-header">
-                    <h1>{isSignUp ? 'Create Account' : 'Welcome Back'}</h1>
-                    <p>{isSignUp ? 'Start your journey today' : 'Enter your details to continue'}</p>
+                <div className="auth-header">
+                    <h2>{isSignUp ? 'Create Account' : 'Welcome Back'}</h2>
+                    <p>{isSignUp ? 'Enter your details to register' : 'Enter your details to continue'}</p>
                 </div>
 
-                <form className="login-form" onSubmit={handleSubmit}>
+                <form className="auth-form" onSubmit={handleSubmit}>
                     {isSignUp && (
                         <>
                             <div className="form-group">
-                                <label htmlFor="name">Full Name</label>
+                                <label>Full Name</label>
                                 <input
-                                    id="name"
-                                    className="form-input"
                                     type="text"
-                                    placeholder="e.g. John Doe"
+                                    placeholder="John Doe"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     required
                                 />
                             </div>
-                            <div className="form-group">
-                                <label htmlFor="age">Age</label>
-                                <input
-                                    id="age"
-                                    className="form-input"
-                                    type="number"
-                                    placeholder="e.g. 25"
-                                    value={age}
-                                    onChange={(e) => setAge(e.target.value)}
-                                    required
-                                    min="10"
-                                    max="120"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="gender">Gender</label>
-                                <select
-                                    id="gender"
-                                    className="form-input"
-                                    value={gender}
-                                    onChange={(e) => setGender(e.target.value)}
-                                    required
-                                    style={{ background: 'var(--card-background)', color: 'var(--text-primary)' }}
-                                >
-                                    <option value="" disabled>Select Gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                    <option value="other">Other</option>
-                                    <option value="prefer_not_to_say">Prefer not to say</option>
-                                </select>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Age</label>
+                                    <input
+                                        type="number"
+                                        placeholder="25"
+                                        value={age}
+                                        onChange={(e) => setAge(e.target.value)}
+                                        required
+                                        min="10"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Gender</label>
+                                    <select
+                                        value={gender}
+                                        onChange={(e) => setGender(e.target.value)}
+                                        required
+                                    >
+                                        <option value="" disabled>Select</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
                             </div>
                         </>
                     )}
 
                     <div className="form-group">
-                        <label htmlFor="email">Email Address</label>
+                        <label>Email Address</label>
                         <input
-                            id="email"
-                            className="form-input"
                             type="email"
                             placeholder="name@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            autoComplete="username"
-                            onInvalid={(e) => e.target.setCustomValidity("Please enter correct I'D")}
-                            onInput={(e) => e.target.setCustomValidity('')}
                         />
                     </div>
+
                     <div className="form-group">
-                        <label htmlFor="password">Password</label>
+                        <label>Password</label>
                         <input
-                            id="password"
-                            className="form-input"
                             type="password"
                             placeholder="Enter your password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            autoComplete={isSignUp ? "new-password" : "current-password"}
                         />
                     </div>
-                    <button type="submit" className="login-button" disabled={loading}>
+
+                    <button type="submit" className="submit-btn" disabled={loading}>
                         {loading ? 'Processing...' : (isSignUp ? 'Sign Up' : 'Sign In')}
                     </button>
                 </form>
 
-                <div className="divider">Or continue with</div>
+                <div className="divider">
+                    <span>Or continue with</span>
+                </div>
 
-                <div className="google-login-wrapper">
+                <div className="google-auth">
                     <GoogleLogin
                         onSuccess={handleGoogleSuccess}
                         onError={handleGoogleError}
                         useOneTap
+                        shape="rectangular"
+                        size="large"
+                        width="100%"
+                        logo_alignment="center"
                     />
                 </div>
             </div>

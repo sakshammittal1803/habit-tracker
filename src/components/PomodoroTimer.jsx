@@ -1,18 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
-import { useTheme } from '../contexts/ThemeContext'
 
 function PomodoroTimer() {
   const [timeLeft, setTimeLeft] = useState(25 * 60)
   const [isActive, setIsActive] = useState(false)
   const [mode, setMode] = useState('work') // 'work', 'shortBreak', 'longBreak'
   const [totalDuration, setTotalDuration] = useState(25 * 60) // Track initial duration for progress
-  const intervalRef = useRef(null)
-  const { isDark } = useTheme()
 
   const modes = {
-    work: { duration: 25 * 60, label: 'Focus Time', color: 'var(--primary-color)' },
-    shortBreak: { duration: 5 * 60, label: 'Short Break', color: 'var(--success-color)' },
-    longBreak: { duration: 15 * 60, label: 'Long Break', color: '#ff6b7a' }
+    work: { duration: 25 * 60, label: 'Focus Time' },
+    shortBreak: { duration: 5 * 60, label: 'Short Break' },
+    longBreak: { duration: 15 * 60, label: 'Long Break' }
   }
 
   // Sound Effect (Web Audio API)
@@ -86,12 +83,6 @@ function PomodoroTimer() {
 
   const toggleTimer = () => setIsActive(!isActive)
 
-  const resetTimer = () => {
-    setIsActive(false)
-    setTimeLeft(modes[mode].duration)
-    setTotalDuration(modes[mode].duration)
-  }
-
   const switchMode = (newMode) => {
     setIsActive(false)
     setMode(newMode)
@@ -106,99 +97,70 @@ function PomodoroTimer() {
   }
 
   return (
-    <div className="page" style={{ alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
-      <div className="pomodoro-minimal" style={{
-        textAlign: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '2rem'
-      }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: 'calc(100vh - 80px)', background: 'var(--background-color)', padding: '4rem 1rem' }}>
+      
+      {/* Mode Switcher */}
+      <div style={{ display: 'flex', background: 'var(--border-color)', padding: '4px', borderRadius: '24px', gap: '4px', marginBottom: '4rem', width: 'fit-content' }}>
+        {Object.entries(modes).map(([key, m]) => (
+          <button
+            key={key}
+            onClick={() => switchMode(key)}
+            style={{
+              padding: '0.6rem 1.5rem',
+              border: 'none',
+              borderRadius: '20px',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              background: mode === key ? 'var(--card-background)' : 'transparent',
+              color: mode === key ? 'var(--text-primary)' : 'var(--text-secondary)',
+              boxShadow: mode === key ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
+            }}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
 
-        {/* Mode Switcher (Pill) */}
-        <div style={{
-          display: 'flex',
-          background: 'var(--border-color)',
-          padding: '4px',
-          borderRadius: '50px',
-          marginBottom: '1rem'
-        }}>
-          {Object.entries(modes).map(([key, m]) => (
-            <button
-              key={key}
-              onClick={() => switchMode(key)}
-              style={{
-                background: mode === key ? 'var(--card-background)' : 'transparent',
-                color: mode === key ? 'var(--text-primary)' : 'var(--text-secondary)',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '50px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                boxShadow: mode === key ? '0 2px 5px rgba(0,0,0,0.1)' : 'none',
-                transition: 'all 0.2s'
-              }}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Character Display */}
-        <div className="hen-character" style={{
-          fontSize: '8rem',
-          lineHeight: 1,
-          filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.1))',
-          animation: isActive ? 'breathe 3s infinite ease-in-out' : 'none',
-          transition: 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-        }}>
+      {/* Main Display Container */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', width: '100%', maxWidth: '400px' }}>
+        
+        {/* Emoji Visual */}
+        <div style={{ fontSize: '7rem', lineHeight: 1, marginBottom: '1rem', filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.1))' }}>
           {getGrowthStage()}
         </div>
 
-        {/* Timer Display */}
-        <div className="timer-display-minimal">
-          <div style={{ fontSize: '5rem', fontWeight: 800, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
-            {formatTime(timeLeft)}
-          </div>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '1.1rem' }}>
-            {getEncouragement()}
-          </p>
-        </div>
+        {/* Timer Time */}
+        <h1 style={{ fontSize: '5rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+          {formatTime(timeLeft)}
+        </h1>
 
-        {/* Controls */}
-        <div className="timer-controls">
-          <button
-            onClick={toggleTimer}
-            className="play-btn"
-            style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '50%',
-              border: 'none',
-              background: 'var(--text-primary)',
-              color: 'var(--card-background)',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-              transition: 'transform 0.1s'
-            }}
-          >
-            {isActive ? '⏸' : '▶'}
-          </button>
-        </div>
+        {/* Subtitle */}
+        <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', margin: '0 0 2rem 0', fontWeight: 500 }}>
+          {getEncouragement()}
+        </p>
 
+        {/* Play/Pause Button */}
+        <button
+          onClick={toggleTimer}
+          style={{
+            width: '64px', height: '64px', borderRadius: '50%', background: 'var(--text-primary)',
+            border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'transform 0.1s', boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+          }}
+          onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
+          onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        >
+          {isActive ? (
+            <svg viewBox="0 0 24 24" style={{ width: '24px', height: '24px', fill: 'var(--background-color)' }}><path d="M6 4h4v16H6zm8 0h4v16h-4z" /></svg>
+          ) : (
+            <svg viewBox="0 0 24 24" style={{ width: '28px', height: '28px', fill: 'var(--background-color)', marginLeft: '4px' }}><path d="M8 5v14l11-7z" /></svg>
+          )}
+        </button>
       </div>
 
-      <style>{`
-        @keyframes breathe {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-        }
-        .play-btn:active { transform: scale(0.95); }
-      `}</style>
     </div>
   )
 }

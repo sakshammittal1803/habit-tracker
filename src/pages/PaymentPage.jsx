@@ -24,7 +24,7 @@ const PaymentPage = ({ onPaymentSuccess, user, trialDaysLeft, hasPaid }) => {
         }
 
         const options = {
-            key: 'rzp_live_SEjqtAAqpngmJn', // Enter the Key ID generated from the Dashboard
+            key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Use the key from .env file
             amount: '10000', // Amount is in currency subunits. Default currency is INR. Hence, 10000 refers to 10000 paise (100 INR)
             currency: 'INR',
             name: 'Habit Tracker Pro',
@@ -62,7 +62,7 @@ const PaymentPage = ({ onPaymentSuccess, user, trialDaysLeft, hasPaid }) => {
                     <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginBottom: '2rem' }}>
                         You have lifetime access to all Premium features. Enjoy tracking your habits without limits!
                     </p>
-                    <button className="btn btn-primary" onClick={() => navigate('/')}>
+                    <button className="checkout-btn" onClick={() => navigate('/')}>
                         Go to Dashboard
                     </button>
                 </div>
@@ -86,7 +86,7 @@ const PaymentPage = ({ onPaymentSuccess, user, trialDaysLeft, hasPaid }) => {
                     <div className="price-tag">
                         <span className="currency">₹</span>
                         <span className="amount">0</span>
-                        <span className="period">/ 30 days</span>
+                        <span className="period">/ 7 days</span>
                     </div>
 
                     <div className={`trial-status ${!isTrialActive ? 'trial-expired' : ''}`}>

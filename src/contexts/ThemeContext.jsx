@@ -16,10 +16,19 @@ export function ThemeProvider({ children }) {
     return saved ? saved === 'dark' : false
   })
 
+  const [accent, setAccent] = useState(() => {
+    return localStorage.getItem('theme-accent') || 'forest-green'
+  })
+
   useEffect(() => {
     localStorage.setItem('theme', isDark ? 'dark' : 'light')
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
   }, [isDark])
+
+  useEffect(() => {
+    localStorage.setItem('theme-accent', accent)
+    document.documentElement.setAttribute('data-accent', accent)
+  }, [accent])
 
   // Listen for native menu theme toggle
   useEffect(() => {
@@ -39,7 +48,7 @@ export function ThemeProvider({ children }) {
   }
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme }}>
+    <ThemeContext.Provider value={{ isDark, toggleTheme, accent, setAccent }}>
       {children}
     </ThemeContext.Provider>
   )

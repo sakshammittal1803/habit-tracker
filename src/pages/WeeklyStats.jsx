@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
 import { getWeekStart, getWeekDates, formatDate } from '../utils/dateUtils'
+import Badges from '../components/Badges'
+import { calculateDynamicGoal } from '../utils/habitUtils'
 
 function WeeklyStats({ habits, hasPaid }) {
   const [currentWeekStart, setCurrentWeekStart] = useState(getWeekStart(new Date()))
@@ -23,22 +25,27 @@ function WeeklyStats({ habits, hasPaid }) {
   // Lock Screen for Free Users
   if (!hasPaid) {
     return (
-      <div className="page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center', gap: '1.5rem' }}>
-        <div style={{ fontSize: '4rem', color: '#e5e7eb' }}>🔒</div>
-        <h1>Weekly Statistics Locked</h1>
-        <p style={{ color: '#666', maxWidth: '400px' }}>
+      <div className="page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 'calc(100vh - 80px)', textAlign: 'center', gap: '1.5rem', background: 'var(--background-color)' }}>
+        <div style={{ fontSize: '4rem', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))' }}>🔒</div>
+        <h1 style={{ color: 'var(--text-primary)' }}>Weekly Statistics Locked</h1>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: '400px' }}>
           Unlock detailed insights into your habits and verify your progress with Premium.
         </p>
         <a href="/payment" style={{
           display: 'inline-block',
-          backgroundColor: '#3b82f6',
+          backgroundColor: 'var(--primary-color)',
           color: 'white',
           padding: '12px 24px',
           borderRadius: '8px',
           textDecoration: 'none',
           fontWeight: 'bold',
-          fontSize: '1.1rem'
-        }}>Get Premium</a>
+          fontSize: '1.1rem',
+          transition: 'background-color 0.2s',
+          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+        }}
+        onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--primary-hover)'}
+        onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--primary-color)'}
+        >Get Premium</a>
       </div>
     )
   }
@@ -66,13 +73,24 @@ function WeeklyStats({ habits, hasPaid }) {
     return habits.map(habit => {
       const completedDays = weekDates.filter(date => {
         const dateStr = formatDate(date)
-        return habit.completions[dateStr]
+        const dayOfWeek = date.getDay()
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
+        let isDisabled = false
+        if (habit.frequency === 'weekdays' && isWeekend) isDisabled = true
+        if (habit.frequency === 'weekends' && !isWeekend) isDisabled = true
+        if (habit.frequency === 'custom' && habit.customDays && !habit.customDays.includes(dayOfWeek)) isDisabled = true
+        
+        return habit.completions && habit.completions[dateStr] && !isDisabled
       }).length
+
+      const goal = calculateDynamicGoal(habit.frequency, weekDates, habit.customDays)
+      const percentage = goal > 0 ? Math.round((completedDays / goal) * 100) : 0
 
       return {
         name: habit.name,
         completed: completedDays,
-        percentage: Math.round((completedDays / 7) * 100)
+        goal,
+        percentage: percentage > 100 ? 100 : percentage // Cap at 100% if they do extra
       }
     })
   }
@@ -86,7 +104,7 @@ function WeeklyStats({ habits, hasPaid }) {
         <header>
           <h1>Weekly Statistics</h1>
         </header>
-        <div className="empty-state" style={{ textAlign: 'center', padding: '3rem', color: colors.text }}>
+        <div className="empty-state" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
           <h3>No habits to analyze</h3>
           <p>Add some habits in the Monthly View to see your weekly statistics!</p>
         </div>
@@ -101,7 +119,7 @@ function WeeklyStats({ habits, hasPaid }) {
   return (
     <div className="page">
       <header className="stats-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Weekly Statistics</h1>
+        <h1 style={{ color: 'var(--text-primary)' }}>Weekly Statistics</h1>
         <div className="week-navigation" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <button
             className="nav-button"
@@ -111,7 +129,7 @@ function WeeklyStats({ habits, hasPaid }) {
           >
             &lt;
           </button>
-          <span className="current-month" style={{ fontWeight: 600 }}>
+          <span className="current-month" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
             {currentWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </span>
           <button
@@ -133,7 +151,7 @@ function WeeklyStats({ habits, hasPaid }) {
             <div className="summary-label" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Completions</div>
           </div>
           <div className="summary-card" style={{ padding: '1.5rem', background: 'var(--card-background)', borderRadius: 'var(--radius)', border: '1px solid var(--border-color)', textAlign: 'center' }}>
-            <div className="summary-value" style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--success-color)' }}>{avgDailyRate}%</div>
+            <div className="summary-value" style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary-color)' }}>{avgDailyRate}%</div>
             <div className="summary-label" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Average Rate</div>
           </div>
           <div className="summary-card" style={{ padding: '1.5rem', background: 'var(--card-background)', borderRadius: 'var(--radius)', border: '1px solid var(--border-color)', textAlign: 'center' }}>
@@ -142,21 +160,24 @@ function WeeklyStats({ habits, hasPaid }) {
           </div>
         </div>
 
+        {/* Badges Section */}
+        <Badges habits={habits} perfectHabits={perfectHabits} />
+
         {/* Charts */}
         <div className="charts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1rem' }}>
           <div className="chart-container" style={{ padding: '1.5rem', background: 'var(--card-background)', borderRadius: 'var(--radius)', border: '1px solid var(--border-color)' }}>
             <h3 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-secondary)' }}>Daily Activity</h3>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={colors.border} />
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: colors.text }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: colors.text }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
                 <Tooltip
-                  cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                  contentStyle={{ borderRadius: '8px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                  cursor={{ fill: 'var(--surface-hover)' }}
+                  contentStyle={{ borderRadius: '8px', border: `1px solid var(--border-color)`, background: 'var(--card-background)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
                   itemStyle={{ color: 'var(--text-primary)' }}
                 />
-                <Bar dataKey="completed" fill={colors.success} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="completed" fill="var(--primary-color)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -165,19 +186,19 @@ function WeeklyStats({ habits, hasPaid }) {
             <h3 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-secondary)' }}>Consistency Trend</h3>
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={colors.border} />
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: colors.text }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: colors.text }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
                 <Tooltip
-                  contentStyle={{ borderRadius: '8px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                  contentStyle={{ borderRadius: '8px', border: `1px solid var(--border-color)`, background: 'var(--card-background)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
                   itemStyle={{ color: 'var(--text-primary)' }}
                 />
                 <Line
                   type="monotone"
                   dataKey="percentage"
-                  stroke={colors.primary}
+                  stroke="var(--primary-color)"
                   strokeWidth={3}
-                  dot={{ fill: colors.primary, r: 4, strokeWidth: 0 }}
+                  dot={{ fill: 'var(--primary-color)', r: 4, strokeWidth: 0 }}
                   activeDot={{ r: 6 }}
                 />
               </LineChart>
@@ -192,19 +213,19 @@ function WeeklyStats({ habits, hasPaid }) {
             <div className="habit-items-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {habitStats.map((habit, index) => (
                 <div key={index} className="habit-stat-item" style={{ display: 'flex', alignItems: 'center', padding: '0.75rem', borderBottom: index < habitStats.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
-                  <div className="habit-name" style={{ width: '200px', fontWeight: 600 }}>{habit.name}</div>
+                  <div className="habit-name" style={{ width: '200px', fontWeight: 600, color: 'var(--text-primary)' }}>{habit.name}</div>
                   <div className="habit-progress-track" style={{ flex: 1, height: '8px', background: 'var(--background-color)', borderRadius: '4px', overflow: 'hidden', margin: '0 1rem' }}>
                     <div
                       className="habit-progress-fill"
                       style={{
                         width: `${habit.percentage}%`,
-                        background: habit.percentage === 100 ? colors.success : colors.primary,
+                        background: 'var(--primary-color)',
                         height: '100%',
                         transition: 'width 0.5s ease-out'
                       }}
                     />
                   </div>
-                  <div className="habit-stat-value" style={{ width: '60px', textAlign: 'right', fontWeight: 600, color: 'var(--text-secondary)' }}>{habit.completed}/7</div>
+                  <div className="habit-stat-value" style={{ width: '60px', textAlign: 'right', fontWeight: 600, color: 'var(--text-secondary)' }}>{habit.completed}/{habit.goal}</div>
                 </div>
               ))}
             </div>

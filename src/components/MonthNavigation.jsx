@@ -1,6 +1,16 @@
 import { formatMonth } from '../utils/dateUtils'
 
-function MonthNavigation({ currentMonthStart, onNavigate }) {
+function MonthNavigation({ currentMonthStart, onNavigate, simpleMode = false }) {
+  if (simpleMode) {
+    return (
+      <div className="planner-nav">
+        <button className="p-nav-btn" onClick={() => onNavigate(-1)}>&lt;</button>
+        <span className="p-nav-month">{currentMonthStart.toLocaleString('default', { month: 'long' })}</span>
+        <button className="p-nav-btn" onClick={() => onNavigate(1)}>&gt;</button>
+      </div>
+    );
+  }
+
   return (
     <div className="date-navigation">
       <button
