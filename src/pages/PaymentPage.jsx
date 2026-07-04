@@ -23,8 +23,15 @@ const PaymentPage = ({ onPaymentSuccess, user, trialDaysLeft, hasPaid }) => {
             return;
         }
 
+        const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+
+        if (!razorpayKey) {
+            alert('Razorpay Key is missing! If you are on Vercel, please add VITE_RAZORPAY_KEY_ID to your Environment Variables and redeploy.');
+            return;
+        }
+
         const options = {
-            key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Use the key from .env file
+            key: razorpayKey, // Use the key from .env file
             amount: '10000', // Amount is in currency subunits. Default currency is INR. Hence, 10000 refers to 10000 paise (100 INR)
             currency: 'INR',
             name: 'Habit Tracker Pro',
