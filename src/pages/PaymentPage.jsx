@@ -36,8 +36,7 @@ const PaymentPage = ({ onPaymentSuccess, user, trialDaysLeft, hasPaid }) => {
             },
             prefill: {
                 name: user?.name || 'User',
-                email: user?.email || 'user@example.com',
-                contact: '', // Phone number is not collected
+                email: user?.email || 'user@example.com'
             },
             notes: {
                 address: 'Razorpay Corporate Office',
