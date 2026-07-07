@@ -211,7 +211,7 @@ function BuddiesPage({ user }) {
       {/* Add Buddy Section */}
       <div style={{ background: 'var(--card-background)', padding: '2rem', borderRadius: 'var(--radius)', border: '1px solid var(--border-color)', marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', marginBottom: '1rem' }}>Add a Buddy</h2>
-        <form onSubmit={handleAddBuddy} style={{ display: 'flex', gap: '1rem' }}>
+        <form onSubmit={handleAddBuddy} className="flex-responsive-row">
           <input 
             type="email" 
             placeholder="Enter friend's email address" 
@@ -236,7 +236,7 @@ function BuddiesPage({ user }) {
               if (!profile) return null;
 
               return (
-                <div key={reqUid} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem', background: 'var(--card-background)', padding: '1rem 1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--primary-color)' }}>
+                <div key={reqUid} className="flex-responsive" style={{ alignItems: 'center', justifyContent: 'space-between', background: 'var(--card-background)', padding: '1rem 1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--primary-color)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary-color)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold' }}>
                       {profile.name ? profile.name.charAt(0).toUpperCase() : 'U'}
@@ -246,7 +246,7 @@ function BuddiesPage({ user }) {
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{profile.email} sent you a request</div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <div className="flex-responsive-row">
                     <button onClick={() => handleAcceptRequest(reqUid)} style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: 'var(--primary-color)', color: 'white', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>Accept</button>
                     <button onClick={() => handleDeclineRequest(reqUid)} style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: 'var(--surface-hover)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', fontWeight: 'bold', cursor: 'pointer' }}>Decline</button>
                   </div>
@@ -275,7 +275,7 @@ function BuddiesPage({ user }) {
             const progress = stats.progress || 0;
 
             return (
-              <div key={buddyUid} style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', background: 'var(--card-background)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border-color)' }}>
+              <div key={buddyUid} className="flex-responsive-row" style={{ alignItems: 'center', background: 'var(--card-background)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border-color)' }}>
                 {/* Avatar */}
                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary-color)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 'bold', flexShrink: 0 }}>
                   {profile.name ? profile.name.charAt(0).toUpperCase() : 'B'}

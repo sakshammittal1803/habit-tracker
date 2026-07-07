@@ -669,6 +669,21 @@ h4 {
   align-items: stretch;
 }
 
+/* Responsive Utilities */
+.flex-responsive {
+  display: flex;
+  gap: 2rem;
+}
+.flex-responsive-row {
+  display: flex;
+  gap: 1rem;
+}
+.flex-wrap-mobile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
 .planner-card {
   background: white;
   border: 1px solid var(--border-color);
@@ -916,107 +931,9 @@ h4 {
    MOBILE OPTIMIZATIONS
    ========================================= */
 
-/* Bottom Navigation (Hidden by default) */
-/* Bottom Navigation (Hidden by default) */
-.bottom-nav {
-  display: none;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 65px;
-  /* Slightly taller for better touch */
-  background: rgba(255, 255, 255, 0.85);
-  /* Semi-transparent light */
-  backdrop-filter: blur(12px);
-  /* Glass effect */
-  -webkit-backdrop-filter: blur(12px);
-  /* Safari support */
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-  z-index: 1000;
-  padding-bottom: env(safe-area-inset-bottom);
-  /* iPhone X+ support */
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="dark"] .bottom-nav {
-  background: rgba(31, 41, 55, 0.85);
-  /* Semi-transparent dark */
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.bottom-nav__container {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  height: 100%;
-  max-width: 600px;
-  /* Prevent spreading too wide on tablets */
-  margin: 0 auto;
-}
-
-.bottom-nav__link {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  color: var(--text-secondary);
-  font-size: 0.7rem;
-  gap: 4px;
-  width: 100%;
-  height: 100%;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.bottom-nav__link--active {
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
-/* Active Indicator Dot */
-.bottom-nav__link--active::after {
-  content: '';
-  position: absolute;
-  top: 8px;
-  width: 4px;
-  height: 4px;
-  background: var(--primary-color);
-  border-radius: 50%;
-  box-shadow: 0 0 8px var(--primary-color);
-}
-
-.bottom-nav__icon {
-  font-size: 1.4rem;
-  /* Larger icons */
-  margin-bottom: 2px;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.bottom-nav__link:active .bottom-nav__icon {
-  transform: scale(0.9);
-}
-
-.bottom-nav__link--active .bottom-nav__icon {
-  transform: translateY(-2px);
-}
-
-/* Page content needs padding at bottom so nav doesn't cover it */
 @media (max-width: 768px) {
   .page {
-    padding-bottom: 70px !important;
-    /* Space for bottom nav */
-  }
-
-  .navbar {
-    display: none;
-    /* Hide top navbar */
-  }
-
-  .bottom-nav {
-    display: block;
-    /* Show bottom nav */
+    padding-bottom: 20px !important;
   }
 
   /* Sticky First Column for Habit Grid */
@@ -1135,6 +1052,25 @@ h4 {
   .current-month {
     padding: 0.2rem 0.6rem !important;
     font-size: 0.8rem !important;
+  }
+
+  .planner-header-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .flex-responsive {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 1.5rem;
+  }
+
+  .flex-responsive > div {
+    width: 100% !important;
+  }
+
+  .flex-responsive-row {
+    flex-direction: column;
+    align-items: stretch !important;
   }
 }
 
@@ -1492,6 +1428,7 @@ h4 {
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
 }
 
 .nav-btn:hover {

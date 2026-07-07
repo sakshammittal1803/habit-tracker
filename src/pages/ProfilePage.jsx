@@ -3,6 +3,7 @@ import Badges from '../components/Badges';
 import { getWeekDates, formatDate, getWeekStart } from '../utils/dateUtils';
 import { useTheme } from '../contexts/ThemeContext';
 import { exportHabitsToCSV, importHabitsFromCSV } from '../utils/habitUtils';
+import { playAlarmSound } from '../components/NotificationManager';
 
 function ProfilePage({ user, habits, onImportHabits }) {
   const { accent, setAccent } = useTheme();
@@ -15,10 +16,70 @@ function ProfilePage({ user, habits, onImportHabits }) {
 
   const handleReminderToggle = (e) => {
     const enabled = e.target.checked;
+    
+    if (enabled && 'Notification' in window) {
+      if (Notification.permission === 'denied') {
+        alert("Notifications are blocked in your browser settings. Please enable them for this site to receive reminders.");
+        return;
+      } else if (Notification.permission !== 'granted') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            setRemindersEnabled(true);
+            localStorage.setItem('reminders-enabled', 'true');
+          } else {
+            alert("Permission required to enable daily reminders.");
+            setRemindersEnabled(false);
+            localStorage.setItem('reminders-enabled', 'false');
+          }
+        });
+        return;
+      }
+    }
+
     setRemindersEnabled(enabled);
     localStorage.setItem('reminders-enabled', enabled);
-    if (enabled && 'Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
+  };
+
+  const handleTestNotification = async () => {
+    if (!('Notification' in window)) {
+      alert("This browser does not support notifications.");
+      return;
+    }
+
+    if (Notification.permission !== 'granted') {
+      alert("Please enable notifications first! Current status: " + Notification.permission);
+      return;
+    }
+
+    const title = 'Test Reminder ⏰';
+    const options = {
+      body: "This is a test notification! Your reminders are working.",
+      icon: '/pwa-192x192.png'
+    };
+
+    try {
+      let shown = false;
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration && registration.active) {
+          await registration.showNotification(title, options);
+          shown = true;
+        }
+      }
+      
+      if (!shown) {
+        const notif = new Notification(title, options);
+        notif.onerror = (err) => {
+          console.error("Notification error:", err);
+          alert("Notification encountered an error. Check console.");
+        };
+      }
+      
+      playAlarmSound();
+      alert("Notification triggered! If you don't see or hear it, check your computer's 'Do Not Disturb' or 'Focus Assist' settings.");
+    } catch (error) {
+      console.error(error);
+      alert("Error triggering notification: " + error.message);
     }
   };
 
@@ -26,6 +87,8 @@ function ProfilePage({ user, habits, onImportHabits }) {
     const time = e.target.value;
     setReminderTime(time);
     localStorage.setItem('reminder-time', time);
+    // Clear last notified so they can test it multiple times today by changing the time
+    localStorage.removeItem('last-notified-date'); 
   };
 
   // Calculate perfectHabits for the current week to pass to Badges
@@ -82,14 +145,12 @@ function ProfilePage({ user, habits, onImportHabits }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         {/* Profile Info Card */}
-        <div style={{ 
+        <div className="flex-responsive" style={{ 
           background: 'var(--card-background)', 
           borderRadius: 'var(--radius)', 
           border: '1px solid var(--border-color)', 
           padding: '2rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '2rem'
+          alignItems: 'center'
         }}>
           {/* Avatar */}
           <div style={{ flexShrink: 0 }}>
@@ -146,7 +207,7 @@ function ProfilePage({ user, habits, onImportHabits }) {
             {/* Theme Settings */}
             <div>
               <h3 style={{ color: 'var(--text-secondary)', fontSize: '1rem', marginBottom: '1rem' }}>Accent Theme</h3>
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <div className="flex-wrap-mobile">
                 <button 
                   onClick={() => setAccent('forest-green')}
                   style={{ 
@@ -201,7 +262,7 @@ function ProfilePage({ user, habits, onImportHabits }) {
                 </label>
                 
                 {remindersEnabled && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: '1.5rem' }}>
+                  <div className="flex-wrap-mobile" style={{ alignItems: 'center', marginLeft: '1.5rem' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Remind me at:</span>
                     <input 
                       type="time" 
@@ -212,6 +273,16 @@ function ProfilePage({ user, habits, onImportHabits }) {
                         border: '1px solid var(--border-color)', padding: '0.5rem', borderRadius: '4px'
                       }}
                     />
+                    <button 
+                      onClick={handleTestNotification}
+                      style={{
+                        background: 'var(--background-color)', color: 'var(--text-primary)',
+                        border: '1px solid var(--border-color)', padding: '0.5rem 1rem', 
+                        borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold'
+                      }}
+                    >
+                      Test
+                    </button>
                   </div>
                 )}
               </div>
@@ -223,7 +294,7 @@ function ProfilePage({ user, habits, onImportHabits }) {
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>
                 Download your habits as a CSV file to keep a personal backup, or import an existing CSV file.
               </p>
-              <div style={{ display: 'flex', gap: '1rem' }}>
+              <div className="flex-wrap-mobile">
                 <button 
                   onClick={handleExport}
                   style={{ 

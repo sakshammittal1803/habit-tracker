@@ -63,9 +63,9 @@ function MonthlyView({ habits, onAddHabit, onDeleteHabit, onToggleCompletion, on
       )}
       
       {/* Top Header Row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="flex-wrap-mobile" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+        <div className="flex-wrap-mobile" style={{ alignItems: 'center', gap: '2rem' }}>
           <h1 style={{ fontSize: '2rem', margin: 0, color: 'var(--text-primary)', fontWeight: 800 }}>My Habits</h1>
           
           <div style={{ display: 'flex', background: 'var(--surface-hover)', borderRadius: '20px', padding: '0.2rem' }}>
@@ -92,15 +92,15 @@ function MonthlyView({ habits, onAddHabit, onDeleteHabit, onToggleCompletion, on
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <button onClick={() => navigate(-1)} style={{ border: '1px solid var(--border-color)', background: 'var(--card-background)', color: 'var(--text-primary)', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}>&lt;</button>
+            <button onClick={() => navigate(-1)} style={{ border: '1px solid var(--border-color)', background: 'var(--card-background)', color: 'var(--text-primary)', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', flexShrink: 0 }}>&lt;</button>
             <span style={{ fontWeight: 'bold', minWidth: '100px', textAlign: 'center', color: 'var(--text-primary)' }}>
               {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
             </span>
-            <button onClick={() => navigate(1)} style={{ border: '1px solid var(--border-color)', background: 'var(--card-background)', color: 'var(--text-primary)', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}>&gt;</button>
+            <button onClick={() => navigate(1)} style={{ border: '1px solid var(--border-color)', background: 'var(--card-background)', color: 'var(--text-primary)', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', flexShrink: 0 }}>&gt;</button>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className="flex-wrap-mobile" style={{ alignItems: 'center' }}>
           <select 
             value={selectedCategory}
             onChange={e => setSelectedCategory(e.target.value)}
