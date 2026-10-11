@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // User Profile Document Rules
+    match /users/{userId} {
+      // Any authenticated user can read public profiles to find buddies and view friend stats
+      allow read: if request.auth != null;
+
+      // Users can create their own profile document
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // Users can update their own profile;
+      // Other authenticated users can ONLY update friendRequests or friends arrays
+      allow update: if request.auth != null && (
+        request.auth.uid == userId ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friendRequests']) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends']) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends', 'friendRequests'])
+      );
+
+      // Only the account owner can delete their profile
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // User Habits Document Rules
+    match /user_habits/{userId} {
+      // The user can read their habits, or an accepted buddy can read them for weekly accountability
+      allow read: if request.auth != null && (
+        request.auth.uid == userId ||
+        (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          userId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.friends
+        )
+      );
+
+      // ONLY the user themselves can create, update, or delete their habits
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
