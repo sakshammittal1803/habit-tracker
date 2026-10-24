@@ -44,7 +44,7 @@ function Navbar({ user, onLogout }) {
             <div className="profile-section">
               <Link to="/profile" onClick={closeMenu} className="profile-link">
                 {user && user.picture ? (
-                  <img src={user.picture} alt="Profile" className="profile-img" />
+                  <img src={user.picture} alt="Profile" className="nav-profile-img" />
                 ) : (
                   <div className="profile-fallback">
                     {user && user.name ? user.name.charAt(0).toUpperCase() : 'U'}

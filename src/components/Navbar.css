@@ -82,16 +82,25 @@
   text-decoration: none;
 }
 
-.profile-img {
-  width: 32px;
-  height: 32px;
+.nav-profile-img {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
   border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
 }
 
 .profile-fallback {
-  width: 32px;
-  height: 32px;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
   border-radius: 50%;
   background: var(--primary-color);
   color: white;
@@ -99,6 +108,8 @@
   align-items: center;
   justify-content: center;
   font-weight: bold;
+  flex-shrink: 0;
+  font-size: 0.9rem;
 }
 
 .profile-name {
