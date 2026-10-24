@@ -6,7 +6,8 @@ import HabitGrid from '../components/HabitGrid'
 import DashboardGraph from '../components/DashboardGraph'
 import { getMonthStart, getMonthDates, getWeekStart, getWeekDates, formatDate } from '../utils/dateUtils'
 
-function MonthlyView({ habits, onAddHabit, onDeleteHabit, onToggleCompletion, onUpdateNote, hasPaid }) {
+function MonthlyView({ habits = [], onAddHabit, onDeleteHabit, onToggleCompletion, onUpdateNote, hasPaid }) {
+  const safeHabits = Array.isArray(habits) ? habits : []
   const [currentDate, setCurrentDate] = useState(new Date())
   const [viewMode, setViewMode] = useState('monthly')
   const [selectedCategory, setSelectedCategory] = useState('All')
@@ -52,8 +53,8 @@ function MonthlyView({ habits, onAddHabit, onDeleteHabit, onToggleCompletion, on
   }
 
   const filteredHabits = selectedCategory === 'All' 
-    ? habits 
-    : habits.filter(h => h.category === selectedCategory);
+    ? safeHabits
+    : safeHabits.filter(h => h.category === selectedCategory);
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', background: 'var(--background-color)', color: 'var(--text-primary)', position: 'relative' }}>

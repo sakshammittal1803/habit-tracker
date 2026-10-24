@@ -2,13 +2,14 @@ import React from 'react';
 import { calculateStreaks } from '../utils/habitUtils';
 import { formatDate } from '../utils/dateUtils';
 
-function Badges({ habits }) {
+function Badges({ habits = [] }) {
+  const safeHabits = Array.isArray(habits) ? habits : [];
   // Check if there was ever a 7-consecutive-day period where ALL scheduled habits were completed
   let hasPerfectWeek = false;
-  if (habits && habits.length > 0) {
+  if (safeHabits.length > 0) {
     // Gather all unique completed dates across all habits
     const allDates = new Set();
-    habits.forEach(h => {
+    safeHabits.forEach(h => {
       Object.keys(h.completions || {}).forEach(d => {
         if (h.completions[d]) allDates.add(d);
       });
@@ -16,11 +17,12 @@ function Badges({ habits }) {
 
     // A date is a "perfect day" if every habit scheduled on that day has a completion
     const perfectDays = Array.from(allDates).filter(dateStr => {
+      if (!dateStr || isNaN(new Date(dateStr).getTime())) return false;
       const dateObj = new Date(dateStr);
       const dayOfWeek = dateObj.getDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-      return habits.every(habit => {
+      return safeHabits.every(habit => {
         // Check if habit is scheduled on this day
         if (habit.frequency === 'weekdays' && isWeekend) return true;
         if (habit.frequency === 'weekends' && !isWeekend) return true;
@@ -35,12 +37,12 @@ function Badges({ habits }) {
     }
   }
 
-  const hasFireStreak = habits && habits.some(h => {
+  const hasFireStreak = safeHabits.some(h => {
     const validDates = Object.keys(h.completions || {}).filter(k => h.completions[k]);
     return calculateStreaks(validDates).bestStreak >= 7;
   });
 
-  const hasKingStreak = habits && habits.some(h => {
+  const hasKingStreak = safeHabits.some(h => {
     const validDates = Object.keys(h.completions || {}).filter(k => h.completions[k]);
     return calculateStreaks(validDates).bestStreak >= 30;
   });
@@ -51,7 +53,7 @@ function Badges({ habits }) {
       name: 'Habit Starter',
       description: 'Create your first habit',
       icon: '🌱',
-      unlocked: Boolean(habits && habits.length >= 1)
+      unlocked: Boolean(safeHabits.length >= 1)
     },
     {
       id: 'fire',
