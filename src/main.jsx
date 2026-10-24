@@ -7,7 +7,7 @@ import './App.css'
 
 console.log('🚀 Main.jsx is running!')
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '282711682932-sfpvmf09h22e87t625uu3gue6sopqmgv.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '704679840129-3ntohu3k82chbadh5micpbo9iesmor7g.apps.googleusercontent.com';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
