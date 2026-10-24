@@ -121,6 +121,9 @@ function App() {
       } finally {
         setIsLoading(false)
       }
+    }, (authError) => {
+      console.warn("Auth observer error:", authError)
+      setIsLoading(false)
     })
 
     return () => {

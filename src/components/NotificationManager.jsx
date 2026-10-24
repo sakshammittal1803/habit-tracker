@@ -5,9 +5,10 @@ import { playAlarmSound } from '../utils/audioUtils';
 
 export { playAlarmSound };
 
-function NotificationManager({ habits }) {
+function NotificationManager({ habits = [] }) {
   useEffect(() => {
     const checkAndNotify = async () => {
+      const safeHabits = Array.isArray(habits) ? habits : [];
       const now = new Date();
       
       const remindersEnabled = localStorage.getItem('reminders-enabled') === 'true';
@@ -30,7 +31,7 @@ function NotificationManager({ habits }) {
         // Are there uncompleted habits for today?
         let hasUncompleted = false;
         
-        for (const habit of habits) {
+        for (const habit of safeHabits) {
           const dayOfWeek = now.getDay();
           const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
           

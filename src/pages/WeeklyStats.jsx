@@ -5,7 +5,8 @@ import { getWeekStart, getWeekDates, formatDate } from '../utils/dateUtils'
 import Badges from '../components/Badges'
 import { calculateDynamicGoal } from '../utils/habitUtils'
 
-function WeeklyStats({ habits, hasPaid }) {
+function WeeklyStats({ habits = [], hasPaid }) {
+  const safeHabits = Array.isArray(habits) ? habits : []
   const [currentWeekStart, setCurrentWeekStart] = useState(getWeekStart(new Date()))
 
   // Theme colors matching CSS variables
@@ -61,7 +62,7 @@ function WeeklyStats({ habits, hasPaid }) {
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
 
       // Determine which habits are actually scheduled for this day
-      const scheduledHabits = habits.filter(habit => {
+      const scheduledHabits = safeHabits.filter(habit => {
         if (habit.frequency === 'weekdays' && isWeekend) return false
         if (habit.frequency === 'weekends' && !isWeekend) return false
         if (habit.frequency === 'custom' && habit.customDays && !habit.customDays.includes(dayOfWeek)) return false
@@ -83,7 +84,7 @@ function WeeklyStats({ habits, hasPaid }) {
   const getHabitStats = () => {
     const weekDates = getWeekDates(currentWeekStart)
 
-    return habits.map(habit => {
+    return safeHabits.map(habit => {
       const completedDays = weekDates.filter(date => {
         const dateStr = formatDate(date)
         const dayOfWeek = date.getDay()
@@ -111,7 +112,7 @@ function WeeklyStats({ habits, hasPaid }) {
   const weeklyData = getWeeklyData()
   const habitStats = getHabitStats()
 
-  if (habits.length === 0) {
+  if (safeHabits.length === 0) {
     return (
       <div className="page">
         <header>
@@ -174,7 +175,7 @@ function WeeklyStats({ habits, hasPaid }) {
         </div>
 
         {/* Badges Section */}
-        <Badges habits={habits} perfectHabits={perfectHabits} />
+        <Badges habits={safeHabits} perfectHabits={perfectHabits} />
 
         {/* Charts */}
         <div className="charts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1rem' }}>
