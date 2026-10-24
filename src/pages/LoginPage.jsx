@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GoogleLogin } from '@react-oauth/google';
-import { GoogleAuthProvider, signInWithCredential, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signInWithPopup } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signInWithPopup } from "firebase/auth";
 import { auth, db, googleProvider } from "../firebase";
 import { doc, setDoc } from "firebase/firestore";
 import './LoginPage.css';
@@ -88,24 +87,6 @@ const LoginPage = ({ onLogin }) => {
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleGoogleSuccess = async (credentialResponse) => {
-        try {
-            setError('');
-            setLoading(true);
-            const credential = GoogleAuthProvider.credential(credentialResponse.credential);
-            await signInWithCredential(auth, credential);
-        } catch (err) {
-            console.error("Firebase Auth Error:", err);
-            setError(formatAuthError(err));
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleGoogleError = () => {
-        setError('Google Sign-In failed or was cancelled. Please try the Google Sign-In button again.');
     };
 
     const handleDirectGoogleSignIn = async () => {
