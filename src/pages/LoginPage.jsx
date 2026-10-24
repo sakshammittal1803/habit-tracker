@@ -7,7 +7,9 @@ import { doc, setDoc } from "firebase/firestore";
 import './LoginPage.css';
 
 const formatAuthError = (error) => {
-    switch (error.code) {
+    if (!error) return 'An error occurred during authentication.';
+    const code = error.code || error.message;
+    switch (code) {
         case 'auth/email-already-in-use':
             return 'This email is already registered. Please sign in instead.';
         case 'auth/invalid-credential':
@@ -19,7 +21,14 @@ const formatAuthError = (error) => {
         case 'auth/invalid-email':
             return 'Please enter a valid email address.';
         case 'auth/popup-closed-by-user':
+        case 'auth/cancelled-popup-request':
             return 'Sign-in popup was closed before completing.';
+        case 'auth/popup-blocked':
+            return 'Sign-in popup was blocked by your browser. Please allow popups for this site.';
+        case 'auth/unauthorized-domain':
+            return 'This domain is not authorized for Google Sign-In in Firebase Console.';
+        case 'auth/operation-not-allowed':
+            return 'Google Sign-In is not enabled in Firebase Console.';
         default:
             return error.message || 'An error occurred during authentication.';
     }
@@ -96,7 +105,7 @@ const LoginPage = ({ onLogin }) => {
     };
 
     const handleGoogleError = () => {
-        setError('Google Login could not be completed with one-tap. Please use the Google Sign-In button below.');
+        setError('Google Sign-In failed or was cancelled. Please try the Google Sign-In button again.');
     };
 
     const handleDirectGoogleSignIn = async () => {
@@ -105,7 +114,7 @@ const LoginPage = ({ onLogin }) => {
             setLoading(true);
             await signInWithPopup(auth, googleProvider);
         } catch (err) {
-            if (err.code !== 'auth/popup-closed-by-user') {
+            if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
                 console.error("Google popup error:", err);
                 setError(formatAuthError(err));
             }
@@ -248,7 +257,6 @@ const LoginPage = ({ onLogin }) => {
                     <GoogleLogin
                         onSuccess={handleGoogleSuccess}
                         onError={handleGoogleError}
-                        useOneTap
                         shape="rectangular"
                         size="large"
                         width="100%"

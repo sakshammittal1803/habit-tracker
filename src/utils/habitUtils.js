@@ -3,8 +3,12 @@ export function calculateStreaks(completedDatesArray) {
     return { currentStreak: 0, bestStreak: 0 };
   }
 
-  // Deduplicate and filter out empty/falsy strings
-  const uniqueDates = Array.from(new Set(completedDatesArray.filter(Boolean)));
+  // Deduplicate and filter out empty/falsy/invalid strings
+  const uniqueDates = Array.from(new Set(
+    (completedDatesArray || [])
+      .filter(Boolean)
+      .filter(d => !isNaN(new Date(d).getTime()))
+  ));
   if (uniqueDates.length === 0) {
     return { currentStreak: 0, bestStreak: 0 };
   }

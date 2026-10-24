@@ -1,8 +1,11 @@
 import HabitRow from './HabitRow'
 import { getMonthDates } from '../utils/dateUtils'
 
-function HabitGrid({ habits, dates, onDeleteHabit, onDayClick }) {
-  if (habits.length === 0) {
+function HabitGrid({ habits = [], dates = [], onDeleteHabit, onDayClick }) {
+  const safeHabits = Array.isArray(habits) ? habits : []
+  const safeDates = Array.isArray(dates) ? dates : []
+
+  if (safeHabits.length === 0) {
     return (
       <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
         <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>No habits found.</h3>
@@ -22,7 +25,7 @@ function HabitGrid({ habits, dates, onDeleteHabit, onDayClick }) {
           </div>
           
           <div style={{ display: 'flex', flex: 1 }}>
-            {dates.map(date => (
+            {safeDates.map(date => (
               <div key={date.toISOString()} style={{ width: '32px', minWidth: '32px', textAlign: 'center', padding: '0.75rem 0', fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.75rem', borderRight: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {date.getDate()}
               </div>
@@ -43,11 +46,11 @@ function HabitGrid({ habits, dates, onDeleteHabit, onDayClick }) {
 
         {/* Habit Rows */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {habits.map((habit, index) => (
+          {safeHabits.map((habit) => (
             <HabitRow
               key={habit.id}
               habit={habit}
-              dates={dates}
+              dates={safeDates}
               onDelete={() => onDeleteHabit(habit.id)}
               onDayClick={onDayClick}
             />
